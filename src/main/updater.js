@@ -18,7 +18,7 @@ import electronUpdater from 'electron-updater'
 
 const { autoUpdater } = electronUpdater
 
-const RELEASES_URL = 'https://github.com/dev-vaibhav0220/React-native-spy/releases/latest'
+const RELEASES_URL = 'https://github.com/Vaibhav-S-Mahajan/React-native-spy/releases/latest'
 
 // macOS builds are unsigned, so in-app install is not possible there.
 const CAN_INSTALL_IN_APP = process.platform !== 'darwin'

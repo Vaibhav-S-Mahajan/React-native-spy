@@ -13,7 +13,7 @@ export const PRODUCT = {
   port: 8097,
   // Matches the publish block in electron-builder.yml, which is where
   // electron-updater looks for new versions.
-  repo: 'https://github.com/dev-vaibhav0220/React-native-spy'
+  repo: 'https://github.com/Vaibhav-S-Mahajan/React-native-spy'
 }
 
 // Headline numbers. Each is a real constant from the codebase, not marketing math.

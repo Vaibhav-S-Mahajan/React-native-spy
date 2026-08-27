@@ -1,6 +1,6 @@
 # Features Walkthrough
 
-React Native Spy has four main panels plus per-device tabs. All data is grouped per device; switch devices with the tabs under the top bar.
+React Native Spy has six panels plus per-device tabs: **Network**, **WebSocket**, **Console**, **Storage**, **WatermelonDB** and **Logs**. All data is grouped per device; switch devices with the tabs under the top bar.
 
 ## Top bar
 
@@ -39,7 +39,7 @@ A virtualized list of HTTP requests (from `fetch` and `XMLHttpRequest`), newest 
 | Response | Response body (pretty-printed) |
 | Timing | Start time + duration bar |
 
-**Right-click a row** for: copy request details, copy as cURL (bash/PowerShell), copy as fetch/Node fetch/Axios/HTTPie/raw HTTP, copy URL/query params/headers/body, export as HAR, and **hide** requests by name or by all related requests.
+**Right-click a row** for: copy request details, copy as cURL (bash/PowerShell), copy as fetch/Node fetch/Axios/HTTPie/raw HTTP, copy URL/query params/request & response headers/request & response body, export as a HAR entry or all headers as JSON, and **hide** requests by name or by all related requests.
 
 Records are capped at **2000 per device** (oldest dropped).
 
@@ -65,6 +65,30 @@ A virtualized, color-coded log stream.
 - Right-click for copy (message / pretty / with timestamp), copy caller path, and "open in VS Code" entries extracted from the message text.
 
 Logs are capped at **2000 per device**.
+
+## Storage panel
+
+Browse and edit the connected device's key-value stores from the desktop.
+
+- **Backend tabs** — one per store the SDK found: AsyncStorage (a single store) plus every MMKV instance your app creates. MMKV instances are auto-detected by wrapping the `MMKV` constructor, so any `new MMKV()` in app code shows up here.
+- **Filter box** searches keys and values.
+- **Add a key** with the `+` button, or click any row to **edit it inline**. Values carry an explicit type (string / number / boolean / object), colour-coded by a type badge; numbers and booleans are validated before the write is sent, and JSON-looking strings are parsed-checked.
+- **Remove a key** with the trash icon.
+- **Auto-refresh** (on by default) re-reads the store every 2s while the tab is open, so the table tracks what your app writes.
+
+Writes are sent to the device over the same socket, so the app sees them immediately. Editing requires the device to be **online**.
+
+## WatermelonDB panel
+
+Inspect a local WatermelonDB database without a SQLite client.
+
+- **Table list** on the left with a row count per table. The largest table is selected by default.
+- **Row grid** on the right, with columns from the table schema.
+- **Filter rows** searches the currently loaded window (not the whole table).
+- **Infinite scroll** loads 50 rows at a time; the footer shows `loaded / total` and a **Load more** button.
+- **Auto-refresh** (on by default) re-reads every 3s.
+
+**Read-only by design** — inspection can never corrupt local state.
 
 ## Logs panel
 

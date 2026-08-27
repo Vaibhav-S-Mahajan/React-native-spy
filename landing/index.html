@@ -24,7 +24,11 @@
     <meta name="theme-color" content="#0a0a0c" />
     <meta name="color-scheme" content="dark" />
 
-    <link rel="icon" type="image/svg+xml" href="./logo.svg" />
+    <!-- Two cuts of the same mark. The tab favicon renders at 16-32px, where the
+         waveform inside the lens falls below one device pixel per stroke, so
+         favicon.svg swaps it for a solid pupil. The touch icon renders at 180px
+         and gets the full mark. -->
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="apple-touch-icon" href="./logo.svg" />
 
     <!-- Fonts are the only third-party request on the page. Preconnecting to

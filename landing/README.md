@@ -5,7 +5,7 @@ React 18 + Vite, no CSS framework, no animation library. Deployed to GitHub Page
 by [.github/workflows/pages.yml](../.github/workflows/pages.yml) on every push to
 `main` that touches this folder.
 
-Live at <https://dev-vaibhav0220.github.io/React-native-spy/>.
+Live at <https://vaibhav-s-mahajan.github.io/React-native-spy/>.
 
 ## Run it
 
@@ -159,8 +159,8 @@ looks for new versions. Deployment URLs are separate — those live in
 
 ## Accessibility
 
-The desktop app's own [UI audit](../docs/internal/ui-redesign.md) flagged mouse-only
-interaction as a P1 issue, so this page does not repeat it:
+The desktop app's own UI audit flagged mouse-only interaction as a P1 issue, so
+this page does not repeat it:
 
 - Skip link, single `h1`, ordered headings
 - The features showcase is a real tablist with arrow-key/Home/End navigation and

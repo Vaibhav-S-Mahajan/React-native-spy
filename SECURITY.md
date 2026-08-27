@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please do not open a public issue. Report privately through GitHub's
-[private vulnerability reporting](https://github.com/dev-vaibhav0220/React-native-spy/security/advisories/new)
+[private vulnerability reporting](https://github.com/Vaibhav-S-Mahajan/React-native-spy/security/advisories/new)
 and you will get a first response within a week.
 
 Useful details: what an attacker can do, the app version and OS, and the
@@ -33,7 +33,7 @@ follow from that:
   bundles. Verify this holds if you customise the snippet.
 - Desktop builds are **unsigned** on every platform. Gatekeeper and SmartScreen
   will warn on first launch. Download only from the
-  [GitHub releases page](https://github.com/dev-vaibhav0220/React-native-spy/releases).
+  [GitHub releases page](https://github.com/Vaibhav-S-Mahajan/React-native-spy/releases).
 
 Reports about the unauthenticated LAN server are valid and welcome — an
 authentication story is a known gap, not a design decision anyone is attached

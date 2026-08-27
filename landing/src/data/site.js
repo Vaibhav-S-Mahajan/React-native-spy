@@ -11,7 +11,7 @@
 // For a custom domain or a <user>.github.io repo, set this to '/'.
 export const BASE = '/React-native-spy/'
 
-export const ORIGIN = 'https://dev-vaibhav0220.github.io'
+export const ORIGIN = 'https://vaibhav-s-mahajan.github.io'
 
 export const SITE = {
   base: BASE,

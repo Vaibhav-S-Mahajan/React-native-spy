@@ -1,0 +1,14 @@
+# Keeps the two forms above as the only issue entry points, so every report
+# arrives with an OS and a version attached.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Question or idea
+    url: https://github.com/Vaibhav-S-Mahajan/React-native-spy/discussions
+    about: Ask how something works, or float an idea before filing a request.
+  - name: Troubleshooting guide
+    url: https://github.com/Vaibhav-S-Mahajan/React-native-spy/blob/main/docs/troubleshooting.md
+    about: Connection problems and common fixes are covered here first.
+  - name: Report a security vulnerability
+    url: https://github.com/Vaibhav-S-Mahajan/React-native-spy/security/advisories/new
+    about: Please report privately, not as a public issue.

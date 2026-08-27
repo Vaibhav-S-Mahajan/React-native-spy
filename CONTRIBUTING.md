@@ -5,7 +5,7 @@ Thanks for helping out. This is a small project, so the process is light.
 ## Getting set up
 
 ```bash
-git clone https://github.com/dev-vaibhav0220/React-native-spy.git
+git clone https://github.com/Vaibhav-S-Mahajan/React-native-spy.git
 cd React-native-spy
 npm install
 npm run dev

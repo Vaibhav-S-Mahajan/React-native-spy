@@ -1,0 +1,79 @@
+name: Bug report
+description: Something in the app misbehaves or crashes
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The two things that most often decide whether a bug
+        is fixable are your OS with app version, and whether it reproduces in a
+        fresh React Native project.
+
+        Found a security problem? Do not file it here — see
+        [SECURITY.md](https://github.com/Vaibhav-S-Mahajan/React-native-spy/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open React Native Spy
+        2. Paste the snippet into a fresh RN app
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: React Native Spy version
+      description: Shown in the app's settings, or the release you downloaded.
+      placeholder: 0.1.1
+    validations:
+      required: true
+
+  - type: input
+    id: rn-version
+    attributes:
+      label: React Native version
+      placeholder: 0.76.5
+
+  - type: dropdown
+    id: fresh-project
+    attributes:
+      label: Does it reproduce in a fresh React Native project?
+      options:
+        - Yes
+        - "No — only in my existing project"
+        - Have not tried
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: >
+        The in-app Logs panel and the renderer window's DevTools console are both
+        good sources. Redact any tokens or request bodies before pasting.
+      render: text

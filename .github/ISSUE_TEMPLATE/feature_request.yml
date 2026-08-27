@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest a capability or an improvement
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For anything large or architectural, an issue like this is the right first
+        step — it is much cheaper to disagree about an approach before the code
+        exists.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The problem or workflow, not the solution. What are you working around today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see?
+      description: If you have a specific idea for how it should work, describe it here.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      options:
+        - Console
+        - Network
+        - WebSocket
+        - Storage
+        - WatermelonDB
+        - Logs
+        - Devices / multi-device
+        - Client SDK snippet
+        - Project setup
+        - Settings / theming
+        - Landing page or docs
+        - Something else
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Other tools that do this well, or approaches you ruled out.
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to open a pull request for this

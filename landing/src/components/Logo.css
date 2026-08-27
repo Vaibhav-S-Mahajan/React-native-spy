@@ -1,0 +1,63 @@
+/* src/components/Logo.css
+   Implements the `animated` prop on Logo.jsx. The prop existed and set this
+   class name, but no stylesheet ever defined it — so it did nothing.
+
+   The trace draws itself left to right, holds, then clears: a signal sweeping
+   the lens. `pathLength="100"` on the polyline normalises the path, so the dash
+   numbers below are percentages regardless of the trace geometry. */
+
+.logo__trace {
+  /* One dash as long as the whole path, offset out of view to start. */
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+.logo--animated .logo__trace {
+  animation: logo-sweep 3.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes logo-sweep {
+  /* Draw in over the first third. */
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.35;
+  }
+  30% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  /* Hold the complete waveform — the state it spends most of its time in, so a
+     glance at any random moment reads as a finished mark, not a mid-animation. */
+  72% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  /* Clear out the far end, then restart. */
+  100% {
+    stroke-dashoffset: -100;
+    opacity: 0.35;
+  }
+}
+
+/* The compact cut has no trace to draw, so it pulses like a live indicator. */
+.logo--animated .logo__pupil {
+  animation: logo-pulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes logo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.82); }
+}
+
+/* Motion here is decorative: a static, fully-drawn mark is the correct
+   reduced-motion state. */
+@media (prefers-reduced-motion: reduce) {
+  .logo--animated .logo__trace,
+  .logo--animated .logo__pupil {
+    animation: none;
+  }
+  .logo__trace {
+    stroke-dashoffset: 0;
+  }
+}
