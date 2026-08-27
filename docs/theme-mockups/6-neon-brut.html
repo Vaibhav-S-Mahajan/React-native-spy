@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" data-theme="neonbrut">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme 6 — Neon Brut · React Native Spy</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME 6 — NEON BRUT
+   Brutalist dark. Thick borders, hard offset shadows, magenta/lime,
+   chunky uppercase type. Maximum personality of the six and the one
+   most likely to divide opinion.
+
+   The discipline here: personality lives in borders, shadows and
+   type weight — NOT in the data area. Rows stay legible, timestamps
+   stay tabular, and status colours stay semantic.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-app: #0b0b0f;
+  --bg-chrome: #121218;
+  --bg-panel: #16161d;
+  --bg-panel-alt: #101015;
+  --bg-card: #1f1f29;
+  --bg-input: #191921;
+  --bg-code: #0d0d12;
+
+  --row-hover: #22222d;
+  --row-selected: #3a1040;
+  --row-selected-hover: #47144e;
+
+  --border-subtle: #2b2b38;
+  --border-default: #45455a;
+  --border-strong: #6a6a88;
+
+  --text-primary: #fbfbfe;
+  --text-secondary: #bcbcd0;
+  --text-tertiary: #8e8ea8;
+  --text-link: #7df9ff;
+
+  --ok-bg: #12300f;   --ok-fg: #b6ff3d;   --ok-bd: #2c5c14;
+  --warn-bg: #33260a; --warn-fg: #ffcf33; --warn-bd: #5e4711;
+  --err-bg: #340f22;  --err-fg: #ff5fa2;  --err-bd: #5e1b3c;
+  --info-bg: #101f38; --info-fg: #6fbcff; --info-bd: #1f3c66;
+
+  --accent: #ff2e97;
+  --accent-hover: #e51f83;
+  --accent-fg: #14000a;
+  --accent-soft: rgba(255, 46, 151, 0.18);
+
+  --m-get: #b6ff3d; --m-post: #ffcf33; --m-put: #c08bff;
+  --m-delete: #ff5fa2; --m-patch: #e0b6ff;
+
+  --glow: 0 0 0 2px #b6ff3d;
+
+  /* Brutalist: heavy borders, hard shadows, no blur */
+  --bw: 2px;
+  --radius-sm: 0px; --radius-md: 2px; --radius-lg: 2px; --radius-pill: 2px;
+  --shadow-sm: 2px 2px 0 #000;
+  --shadow-md: 4px 4px 0 #000;
+  --shadow-lg: 6px 6px 0 #000;
+
+  --track-caps: 0.09em;
+  --fw-mid: 600; --fw-semi: 700; --fw-bold: 800;
+
+  /* Chunkier chrome to carry the heavier borders */
+  --header-h: 44px;
+  --tabbar-h: 40px;
+  --devicebar-h: 40px;
+  --toolbar-h: 40px;
+  --row-h: 30px;
+  --selbar: 4px;
+}
+
+.brand-name {
+  text-transform: uppercase; letter-spacing: 0.1em;
+  font-weight: 800; font-size: var(--t-xs);
+}
+.tab {
+  text-transform: uppercase; letter-spacing: 0.07em;
+  font-size: var(--t-xs); font-weight: 700;
+}
+.tab.is-active { color: var(--accent); }
+.tab-ink { height: 4px; }
+.dtab, .btn, .seg-btn { text-transform: uppercase; letter-spacing: 0.05em; }
+
+.btn-accent { border: 2px solid #000; box-shadow: var(--shadow-sm); }
+.btn-accent:active { box-shadow: 0 0 0 #000; transform: translate(2px, 2px); }
+.chip { border-width: 2px; box-shadow: 2px 2px 0 #000; }
+.badge { border-width: 2px; font-weight: 700; }
+.pill { border-width: 2px; font-weight: 700; }
+.seg { border-width: 2px; }
+.seg-btn.is-on { box-shadow: 2px 2px 0 #000; }
+.field { border-width: 2px; }
+.field:focus-within { box-shadow: 2px 2px 0 var(--accent); }
+.dtab.is-active { border: 2px solid var(--border-strong); box-shadow: 2px 2px 0 #000; }
+.jump { border: 2px solid #000; box-shadow: var(--shadow-md); font-weight: 800; }
+.code { border-width: 2px; }
+.devtab.is-active { border-bottom-width: 4px; }
+.colhead { border-bottom-width: 2px; font-weight: 800; }
+.statusline { border-top-width: 2px; }
+.console { border-top-width: 3px; }
+:focus-visible { outline-width: 3px; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="theme-tag">Theme 6 · <b>Neon Brut</b></div>
+<script src="harness.js"></script>
+<script>mountApp(document.getElementById('root'))</script>
+</body>
+</html>

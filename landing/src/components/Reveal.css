@@ -1,0 +1,10 @@
+.reveal {
+  transition-property: opacity, transform;
+  transition-timing-function: var(--ease-out);
+  will-change: opacity, transform;
+}
+
+/* Once the animation has played, drop the compositing hint. */
+.reveal[style*='opacity: 1'] {
+  will-change: auto;
+}

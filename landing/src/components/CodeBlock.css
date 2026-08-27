@@ -1,0 +1,86 @@
+/* CodeBlock.css — syntax-tinted code panel with a copy button.
+   Matches the app's --bg-code surface and mono type stack. */
+
+.code {
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-code);
+  position: relative;
+}
+
+.code__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px 0 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel-alt);
+}
+
+.code__lang {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.code__copy {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-app);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  transition:
+    color 160ms var(--ease),
+    border-color 160ms var(--ease),
+    background 160ms var(--ease);
+}
+
+.code__copy:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-card);
+}
+
+.code__copy--done {
+  color: var(--accent);
+  border-color: rgba(34, 197, 94, 0.4);
+  background: var(--accent-soft);
+}
+
+.code__pre {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  tab-size: 2;
+}
+
+.code__pre code {
+  font-family: var(--font-mono);
+  white-space: pre;
+}
+
+/* Token colours, mirroring the app's method/status palette. */
+.tok-comment { color: var(--text-tertiary); font-style: italic; }
+.tok-string { color: #4ade80; }
+.tok-keyword { color: var(--purple); }
+.tok-number { color: var(--amber); }
+.tok-op { color: var(--blue); }
+.tok-fn { color: var(--blue); }
+
+/* Terminal-style lines get a dim prompt marker. */
+.code--bash .code__pre code::before {
+  content: '';
+}

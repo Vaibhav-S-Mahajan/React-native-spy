@@ -1,0 +1,113 @@
+/* Faq.css — accessible accordion. */
+
+.faq {
+  position: relative;
+  z-index: 1;
+}
+
+.faq__list {
+  max-width: 860px;
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.faq__item {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel-alt);
+  overflow: hidden;
+  transition:
+    border-color 220ms var(--ease),
+    background 220ms var(--ease);
+}
+
+.faq__item:hover {
+  border-color: var(--border-default);
+}
+
+.faq__item--open {
+  border-color: var(--border-strong);
+  background: var(--bg-panel);
+}
+
+.faq__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 19px 22px;
+  text-align: left;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: color 180ms var(--ease);
+}
+
+.faq__q:hover {
+  color: var(--accent);
+}
+
+.faq__icon {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  transition:
+    transform 300ms var(--ease-out),
+    color 220ms var(--ease),
+    border-color 220ms var(--ease),
+    background 220ms var(--ease);
+}
+
+.faq__item--open .faq__icon {
+  transform: rotate(45deg);
+  color: var(--accent);
+  border-color: rgba(34, 197, 94, 0.4);
+  background: var(--accent-soft);
+}
+
+/* Height is animated via a grid-rows trick so the content can size itself
+   without a hard-coded max-height. */
+.faq__a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms var(--ease-out);
+}
+
+.faq__item--open .faq__a {
+  grid-template-rows: 1fr;
+}
+
+.faq__a > div {
+  overflow: hidden;
+  /* Collapsed answers are removed from the accessibility tree without using
+     the `hidden` attribute, which would cancel the height transition. */
+  visibility: hidden;
+  transition: visibility 320ms var(--ease-out);
+}
+
+.faq__item--open .faq__a > div {
+  visibility: visible;
+}
+
+.faq__a p {
+  padding: 0 22px 21px 22px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 720px;
+}
+
+/* Browsers without grid-row interpolation (older Safari) still reveal the
+   answer — they just skip the animation. */
+@supports not (grid-template-rows: 1fr) {
+  .faq__a { grid-template-rows: none; display: none; }
+  .faq__item--open .faq__a { display: block; }
+  .faq__a > div { visibility: visible; }
+}

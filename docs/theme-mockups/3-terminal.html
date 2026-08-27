@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-theme="terminal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme 3 — Terminal · React Native Spy</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME 3 — TERMINAL
+   High-contrast near-black, phosphor green, mono-forward, square
+   corners. Unapologetically a tool. Highest contrast of the six,
+   so it holds up on cheap external monitors and in bright rooms.
+   Mono is used for UI chrome too, not just data.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-app: #000000;
+  --bg-chrome: #060806;
+  --bg-panel: #0a0d0a;
+  --bg-panel-alt: #070907;
+  --bg-card: #111611;
+  --bg-input: #0d110d;
+  --bg-code: #050705;
+
+  --row-hover: #111811;
+  --row-selected: #04301c;
+  --row-selected-hover: #063d24;
+
+  --border-subtle: #1a231a;
+  --border-default: #243124;
+  --border-strong: #3a4c3a;
+
+  --text-primary: #e8f5e8;
+  --text-secondary: #a7c0a7;
+  --text-tertiary: #7d947d;
+  --text-link: #7ce7ff;
+
+  --ok-bg: #06240f;   --ok-fg: #52ff8f;   --ok-bd: #0d4a1f;
+  --warn-bg: #2a2205; --warn-fg: #ffd23f; --warn-bd: #4f4109;
+  --err-bg: #2c0c0c;  --err-fg: #ff6b6b;  --err-bd: #521717;
+  --info-bg: #052430; --info-fg: #5cd8f7; --info-bd: #0b4457;
+
+  --accent: #00ff66;
+  --accent-hover: #00d957;
+  --accent-fg: #001a08;
+  --accent-soft: rgba(0, 255, 102, 0.14);
+
+  --m-get: #52ff8f; --m-post: #ffd23f; --m-put: #b98cff;
+  --m-delete: #ff6b6b; --m-patch: #d4b3ff;
+
+  --glow: 0 0 8px rgba(0, 255, 102, 0.75);
+
+  /* Square. No rounding anywhere. */
+  --radius-sm: 0px; --radius-md: 0px; --radius-lg: 0px; --radius-pill: 0px;
+
+  /* Mono everywhere, including chrome */
+  --font-ui: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --font-brand: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  --track-caps: 0.1em;
+  --row-h: 26px;
+  --shadow-sm: none;
+  --shadow-md: 0 0 0 1px #243124;
+  --shadow-lg: 0 0 0 1px #3a4c3a;
+}
+
+.brand-name { text-transform: uppercase; letter-spacing: 0.12em; font-size: var(--t-xs); }
+.tab { text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--t-xs); }
+.dtab, .btn { text-transform: uppercase; letter-spacing: 0.06em; }
+/* Scanline-free but faintly CRT: selected row gets a hard left bar */
+:root { --selbar: 3px; }
+.row.is-selected { box-shadow: inset 0 0 0 1px var(--ok-bd); }
+.jump { border: 1px solid var(--accent); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="theme-tag">Theme 3 · <b>Terminal</b></div>
+<script src="harness.js"></script>
+<script>mountApp(document.getElementById('root'))</script>
+</body>
+</html>

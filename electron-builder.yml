@@ -1,0 +1,58 @@
+appId: com.reactnativespy.app
+productName: React Native Spy
+directories:
+  buildResources: build
+  output: dist
+
+# Default is `**/*`, which already limits node_modules to production deps.
+# We only strip source + tooling that has no business inside the bundle.
+# Do NOT exclude node_modules here: the main bundle externalizes `ws` and
+# `electron-updater`, so they are required at runtime.
+files:
+  - out/**/*
+  - package.json
+  - "!**/.vscode/*"
+  - "!src/*"
+  - "!docs/*"
+  - "!electron.vite.config.{js,ts,mjs,cjs}"
+  - "!{.eslintrc,.eslintignore,.prettierrc,.prettierignore,.editorconfig}"
+  - "!{.env,.env.*,.npmrc,pnpm-lock.yaml,package-lock.json}"
+  - "!{*.md,.history,.qwen,.claude,.codegraph}"
+
+# electron-updater reads this to know where to look for new versions.
+publish:
+  provider: github
+  owner: dev-vaibhav0220
+  repo: React-native-spy
+  # The draft release is created by `draft-release.yml` when a tag is pushed.
+  # Once the user publishes that draft, this workflow uploads artifacts into the
+  # already-published release, so the release type here is `release`.
+  releaseType: release
+
+mac:
+  category: public.app-category.developer-tools
+  # Unsigned build: no certificate, no notarization, no hardened runtime.
+  identity: null
+  notarize: false
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    # zip is required for electron-updater feed parity on macOS.
+    - target: zip
+      arch: [x64, arm64]
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  category: Development
+  target:
+    - target: AppImage
+      arch: [x64]

@@ -1,0 +1,124 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition:
+    transform 180ms var(--ease),
+    background 180ms var(--ease),
+    border-color 180ms var(--ease),
+    box-shadow 180ms var(--ease),
+    color 180ms var(--ease);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn--lg {
+  height: 52px;
+  padding: 0 28px;
+  font-size: 16px;
+}
+
+.btn--sm {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* ─── Primary: solid accent with a sweeping sheen on hover ─── */
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 6px 20px rgba(34, 197, 94, 0.24);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 12px 32px rgba(34, 197, 94, 0.36);
+}
+
+/* The sheen is a pseudo-element so it never affects layout. */
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  transition: transform 620ms var(--ease-out);
+}
+
+.btn--primary:hover::after {
+  transform: translateX(120%);
+}
+
+/* ─── Secondary: outlined, for the lower-commitment action ─── */
+
+.btn--secondary {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.btn--secondary:hover {
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* ─── Ghost: nav-weight ─── */
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn--ghost:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.btn__icon {
+  display: grid;
+  place-items: center;
+}
+
+/* Arrow icons nudge forward on hover to signal direction. */
+.btn:hover .btn__icon--shift {
+  transform: translateX(3px);
+}
+
+.btn__icon--shift {
+  transition: transform 180ms var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover {
+    transform: none;
+  }
+  .btn--primary::after {
+    display: none;
+  }
+}

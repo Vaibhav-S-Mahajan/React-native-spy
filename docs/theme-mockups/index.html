@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme Gallery — React Native Spy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0c;
+    --card: #121216;
+    --card-hi: #17171c;
+    --bd: #26262e;
+    --bd-hi: #3a3a45;
+    --fg: #f3f3f5;
+    --fg2: #adadb6;
+    --fg3: #85858f;
+    --acc: #22c55e;
+    --ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  }
+  body {
+    font-family: var(--ui);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    padding: 32px 28px 56px;
+  }
+  header { max-width: 1320px; margin: 0 auto 24px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .sub {
+    margin-top: 8px; font-size: 13px; line-height: 1.6;
+    color: var(--fg2); max-width: 76ch;
+  }
+  .sub code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--card-hi); border: 1px solid var(--bd);
+    padding: 1px 5px; border-radius: 4px; color: var(--fg);
+  }
+
+  .bar {
+    max-width: 1320px; margin: 20px auto 0;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding-bottom: 18px; border-bottom: 1px solid var(--bd);
+  }
+  .lab {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--fg3); margin-right: 2px;
+  }
+  .zoom {
+    background: var(--card); color: var(--fg2);
+    border: 1px solid var(--bd); border-radius: 6px;
+    height: 28px; padding: 0 12px; font-size: 12px; font-family: var(--ui);
+    cursor: pointer; transition: all 120ms ease;
+  }
+  .zoom:hover { background: var(--card-hi); color: var(--fg); border-color: var(--bd-hi); }
+  .zoom[aria-pressed="true"] { background: var(--acc); color: #05170c; border-color: var(--acc); font-weight: 600; }
+
+  .grid {
+    max-width: 1320px; margin: 26px auto 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr));
+    gap: 26px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--bd);
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .card:hover { border-color: var(--bd-hi); }
+  .card-h {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-bottom: 1px solid var(--bd);
+  }
+  .n {
+    width: 22px; height: 22px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: var(--card-hi); border: 1px solid var(--bd);
+    font-family: var(--mono); font-size: 11px; color: var(--fg3);
+  }
+  .nm { font-size: 14px; font-weight: 600; }
+  .tagline { font-size: 12px; color: var(--fg3); }
+  .rec {
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #05170c; background: var(--acc);
+    padding: 3px 7px; border-radius: 999px; font-weight: 700;
+  }
+  .open {
+    margin-left: auto; text-decoration: none;
+    background: var(--card-hi); color: var(--fg2);
+    border: 1px solid var(--bd); border-radius: 6px;
+    height: 26px; padding: 0 11px; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 120ms ease; white-space: nowrap;
+  }
+  .open:hover { background: var(--acc); color: #05170c; border-color: var(--acc); font-weight: 600; }
+
+  /* Live iframe previews, scaled down so a full 1280x820 app fits */
+  .shot { position: relative; background: #000; overflow: hidden; }
+  .shot iframe {
+    width: 1280px; height: 820px; border: 0;
+    transform-origin: top left; display: block;
+  }
+  .note {
+    padding: 10px 14px; border-top: 1px solid var(--bd);
+    font-size: 12px; line-height: 1.55; color: var(--fg3);
+  }
+  .note b { color: var(--fg2); font-weight: 500; }
+
+  footer {
+    max-width: 1320px; margin: 40px auto 0;
+    padding-top: 20px; border-top: 1px solid var(--bd);
+    font-size: 12px; line-height: 1.7; color: var(--fg3);
+  }
+  footer b { color: var(--fg2); font-weight: 500; }
+  footer a { color: var(--acc); }
+  kbd {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--card-hi); border: 1px solid var(--bd);
+    border-bottom-width: 2px; padding: 1px 5px; border-radius: 4px; color: var(--fg);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>React Native Spy — theme directions</h1>
+  <p class="sub">
+    Six visual directions for the same redesigned UI. Every preview below is the
+    <em>live</em> mockup running in an iframe, not a screenshot — they share one
+    <code>base.css</code> and one <code>harness.js</code>, so the layout, data and
+    behaviour are byte-identical across all six. Only the design tokens differ.
+    That means what you are comparing is visual language alone.
+    Rationale and the full audit are in <code>docs/internal/ui-redesign.md</code>.
+  </p>
+</header>
+
+<div class="bar">
+  <span class="lab">Preview scale</span>
+  <button class="zoom" data-s="0.42" aria-pressed="true">42%</button>
+  <button class="zoom" data-s="0.55" aria-pressed="false">55%</button>
+  <button class="zoom" data-s="0.75" aria-pressed="false">75%</button>
+  <button class="zoom" data-s="1" aria-pressed="false">100%</button>
+  <span class="lab" style="margin-left:12px">Open any theme full-screen to actually use it</span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <p>
+    <b>What each mockup demonstrates live:</b> real fixed-height row virtualization
+    (scroll the request list — the status bar shows how many rows are actually in the
+    DOM out of 60), the new-row arrival flash, distinct hover / selected / focus states,
+    skeleton loading on first paint, a streaming console with sticky-bottom tailing plus
+    a “N new” pill when you scroll away, and a real timing bar driven by actual duration.
+  </p>
+  <p style="margin-top:10px">
+    <b>Keyboard:</b> click the request list, then <kbd>↑</kbd> <kbd>↓</kbd>
+    <kbd>PgUp</kbd> <kbd>PgDn</kbd> <kbd>Home</kbd> <kbd>End</kbd> to move the active
+    row and <kbd>Enter</kbd> to open it. <kbd>←</kbd> <kbd>→</kbd> move between panel
+    tabs. <kbd>Tab</kbd> reaches every control, and focus is always visible — none of
+    which is currently true in the app.
+  </p>
+</footer>
+
+<script>
+const THEMES = [
+  { n: 1, file: '1-graphite.html', name: 'Graphite',
+    tag: 'Neutral greys · green accent · densest',
+    note: '<b>Lowest-risk.</b> Refined evolution of the current look — hues barely move, but rhythm, contrast and state design are fixed. 26px rows.' },
+  { n: 2, file: '2-midnight.html', name: 'Midnight', rec: true,
+    tag: 'Blue-black · indigo accent · soft elevation',
+    note: '<b>My recommendation.</b> Calmest for long sessions, and the indigo accent leaves red/amber/green entirely free for semantics instead of competing with the brand colour.' },
+  { n: 3, file: '3-terminal.html', name: 'Terminal',
+    tag: 'Near-black · phosphor green · mono, square',
+    note: '<b>Highest contrast.</b> Mono for chrome as well as data, zero rounding. Holds up on cheap external monitors and in bright rooms.' },
+  { n: 4, file: '4-aurora.html', name: 'Aurora',
+    tag: 'Slate · violet→cyan gradient · glass',
+    note: '<b>Most designed.</b> Gradients and glow are confined to accents and indicators — never behind data text, so density survives the personality.' },
+  { n: 5, file: '5-paper.html', name: 'Paper',
+    tag: 'Warm off-white · ink text · restrained',
+    note: '<b>A real light theme,</b> not an inverted dark one. Borders carry structure, status tints drop to ~8% washes, accent darkens on hover. For projectors and screen-shares.' },
+  { n: 6, file: '6-neon-brut.html', name: 'Neon Brut',
+    tag: 'Brutalist · magenta/lime · hard shadows',
+    note: '<b>Boldest, most divisive.</b> Personality lives in borders, shadows and type weight — the data area stays legible and semantic. 2px borders, 30px rows.' },
+]
+
+const grid = document.getElementById('grid')
+grid.innerHTML = THEMES.map((t) => `
+  <div class="card">
+    <div class="card-h">
+      <span class="n">${t.n}</span>
+      <div>
+        <div class="nm">${t.name} ${t.rec ? '<span class="rec">recommended</span>' : ''}</div>
+        <div class="tagline">${t.tag}</div>
+      </div>
+      <a class="open" href="${t.file}" target="_blank" rel="noopener">
+        Open full-screen ↗
+      </a>
+    </div>
+    <div class="shot" data-shot>
+      <iframe src="${t.file}" loading="lazy" title="${t.name} theme preview"
+              scrolling="no" tabindex="-1"></iframe>
+    </div>
+    <div class="note">${t.note}</div>
+  </div>
+`).join('')
+
+// Scale the 1280x820 iframes to fit their card, and keep the wrapper
+// height in sync so there's no dead space below each preview.
+let scale = 0.42
+function applyScale() {
+  document.querySelectorAll('[data-shot]').forEach((box) => {
+    const frame = box.querySelector('iframe')
+    const avail = box.clientWidth
+    // Never exceed the card width, even at 100%
+    const s = Math.min(scale, avail / 1280)
+    frame.style.transform = `scale(${s})`
+    box.style.height = (820 * s) + 'px'
+  })
+}
+document.querySelectorAll('.zoom').forEach((b) => {
+  b.addEventListener('click', () => {
+    scale = parseFloat(b.dataset.s)
+    document.querySelectorAll('.zoom').forEach((x) =>
+      x.setAttribute('aria-pressed', String(x === b)))
+    applyScale()
+  })
+})
+window.addEventListener('resize', applyScale)
+window.addEventListener('load', applyScale)
+applyScale()
+</script>
+</body>
+</html>

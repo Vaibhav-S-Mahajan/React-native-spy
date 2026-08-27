@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── Primary ────────────────────────────────────────────────────────
+         Title is 57 chars so it survives the ~60-char SERP truncation, and
+         leads with the product name because that is the branded query.
+         The prerender step injects canonical, Open Graph, Twitter and
+         JSON-LD tags at the PRERENDER_HEAD marker below — do not add them
+         here by hand or they will be duplicated. -->
+    <title>React Native Spy — Remote Debugger for React Native</title>
+    <meta
+      name="description"
+      content="Free, open-source remote debugger for React Native. Inspect console logs, HTTP requests, live WebSocket frames, AsyncStorage and WatermelonDB across multiple devices at once. No Metro dependency, no native modules, nothing added to package.json."
+    />
+    <meta
+      name="keywords"
+      content="react native debugger, react native devtools, websocket inspector, react native network inspector, flipper alternative, asyncstorage viewer, watermelondb inspector"
+    />
+    <meta name="author" content="Vaibhav Mahajan" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="icon" type="image/svg+xml" href="./logo.svg" />
+    <link rel="apple-touch-icon" href="./logo.svg" />
+
+    <!-- Fonts are the only third-party request on the page. Preconnecting to
+         both hosts saves a DNS+TLS round-trip on the render-blocking CSS. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!--PRERENDER_HEAD-->
+  </head>
+  <body>
+    <div id="root"><!--PRERENDER_APP--></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

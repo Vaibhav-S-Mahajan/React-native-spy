@@ -1,0 +1,863 @@
+/* Space Grotesk — the neo-brutalist display typeface. Loaded here so
+   it is available before any theme rule references it. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=block');
+
+/* ═══════════════════════════════════════════════════════════════
+   themes.css — the mood palettes.
+
+   theme.css owns structure + the DEFAULT (Graphite) values in :root.
+   This file overrides tokens per theme. Nothing here adds new CSS
+   rules — only custom-property values — so switching themes can never
+   change layout, only appearance.
+
+   Adding a theme:
+     1. add a [data-theme="id"] block here
+     2. add the id + label + swatches to THEMES in hooks/useTheme.js
+   Any token a theme omits falls back to :root in theme.css.
+
+   Contrast note: --text-tertiary is used for 12px text, so each theme
+   keeps it at roughly 5:1 or better against --bg-panel. Full WCAG
+   conformance needs manual testing with real assistive tech; these are
+   token-level choices, not a compliance claim.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────
+   MIDNIGHT — deep blue-black, indigo accent, soft elevation.
+   Calmest for long sessions. The indigo accent deliberately leaves
+   red/amber/green free to mean status rather than branding.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="midnight"] {
+  --bg-app: #08090f;
+  --bg-sidebar: #0b0d15;
+  --bg-panel: #0f111a;
+  --bg-panel-alt: #0c0e16;
+  --bg-card: #171a26;
+  --bg-card-hover: #1e2233;
+  /* Selection gets its own surface, distinct from hover above. */
+  --row-selected: #1c2340;
+  --row-selected-hover: #232b4d;
+  --bg-input: #13161f;
+  --bg-code-block: #0a0c12;
+
+  --border-subtle: #1b1f2d;
+  --border-default: #262c3d;
+  --border-strong: #3a4256;
+
+  --text-primary: #eef0f6;
+  --text-secondary: #a9afc4;
+  --text-tertiary: #838ba4;
+  --text-link: #93b4ff;
+
+  --json-key: #93b4ff;
+  --json-string: #f5bd4a;
+  --json-number: #b79cff;
+  --json-keyword: #b79cff;
+
+  --status-success-bg: #0d2620;
+  --status-success-text: #4ade9f;
+  --status-success-border: #1a4638;
+  --status-warning-bg: #2a2110;
+  --status-warning-text: #f5bd4a;
+  --status-warning-border: #4b3a19;
+  --status-danger-bg: #2b1620;
+  --status-danger-text: #fb7f9c;
+  --status-danger-border: #4d2231;
+  --status-info-bg: #131f38;
+  --status-info-text: #7aa9ff;
+  --status-info-border: #22355e;
+
+  --method-get: #4ade9f;
+  --method-post: #f5bd4a;
+  --method-put: #b79cff;
+  --method-delete: #fb7f9c;
+  --method-patch: #cdbcff;
+
+  --diff-add-bg: #0d2620;
+  --diff-add-text: #4ade9f;
+  --diff-remove-bg: #2b1620;
+  --diff-remove-text: #fb7f9c;
+
+  --accent-primary: #6d7cff;
+  --accent-primary-hover: #5866f0;
+  --accent-purple: #b79cff;
+  --accent-fg: #05071a;
+  --accent-muted: rgba(109, 124, 255, 0.18);
+
+  --overlay: rgba(4, 5, 16, 0.72);
+  --overlay-soft: rgba(4, 5, 16, 0.58);
+
+  --logo-body: #6d7cff;
+  --logo-outline: #eef0f6;
+  --logo-lens-bg: #08090f;
+  --logo-lens-ring: #4ade9f;
+
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 8, 0.5);
+  --shadow-md: 0 6px 18px rgba(0, 0, 10, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 12, 0.65);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   TERMINAL — near-black, phosphor green, mono chrome, zero radius.
+   Highest contrast of the six; holds up on cheap external monitors.
+   Note --font-ui is overridden to mono, so chrome reads as terminal
+   too, not just the data cells.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="terminal"] {
+  --bg-app: #000000;
+  --bg-sidebar: #060806;
+  --bg-panel: #0a0d0a;
+  --bg-panel-alt: #070907;
+  --bg-card: #111611;
+  --bg-card-hover: #182018;
+  /* Selection gets its own surface, distinct from hover above. */
+  --row-selected: #04301c;
+  --row-selected-hover: #063d24;
+  --bg-input: #0d110d;
+  --bg-code-block: #050705;
+
+  --border-subtle: #1a231a;
+  --border-default: #243124;
+  --border-strong: #3a4c3a;
+
+  --text-primary: #e8f5e8;
+  --text-secondary: #a7c0a7;
+  --text-tertiary: #86a086;
+  --text-link: #7ce7ff;
+
+  --json-key: #5cd8f7;
+  --json-string: #ffd23f;
+  --json-number: #52ff8f;
+  --json-keyword: #b98cff;
+
+  --status-success-bg: #06240f;
+  --status-success-text: #52ff8f;
+  --status-success-border: #0d4a1f;
+  --status-warning-bg: #2a2205;
+  --status-warning-text: #ffd23f;
+  --status-warning-border: #4f4109;
+  --status-danger-bg: #2c0c0c;
+  --status-danger-text: #ff6b6b;
+  --status-danger-border: #521717;
+  --status-info-bg: #052430;
+  --status-info-text: #5cd8f7;
+  --status-info-border: #0b4457;
+
+  --method-get: #52ff8f;
+  --method-post: #ffd23f;
+  --method-put: #b98cff;
+  --method-delete: #ff6b6b;
+  --method-patch: #d4b3ff;
+
+  --diff-add-bg: #06240f;
+  --diff-add-text: #52ff8f;
+  --diff-remove-bg: #2c0c0c;
+  --diff-remove-text: #ff6b6b;
+
+  --accent-primary: #00ff66;
+  --accent-primary-hover: #00d957;
+  --accent-purple: #b98cff;
+  --accent-fg: #001a08;
+  --accent-muted: rgba(0, 255, 102, 0.16);
+
+  --overlay: rgba(0, 0, 0, 0.8);
+  --overlay-soft: rgba(0, 0, 0, 0.65);
+
+  --logo-body: #00ff66;
+  --logo-outline: #001a08;
+  --logo-lens-bg: #000000;
+  --logo-lens-ring: #52ff8f;
+
+  /* Mono chrome + hard square edges */
+  --font-ui: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-sm: 0 0 0 1px #243124;
+  --shadow-md: 0 0 0 1px #3a4c3a;
+  --shadow-lg: 0 0 0 1px #3a4c3a;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   AURORA — slate with violet accent, deep glow, generous radius.
+   The most "designed" of the six. Colour stays out of the data
+   cells so density survives the personality.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="aurora"] {
+  --bg-app: #0a0b14;
+  --bg-sidebar: #0e1020;
+  --bg-panel: #121423;
+  --bg-panel-alt: #0f1120;
+  --bg-card: #1b1e35;
+  --bg-card-hover: #232745;
+  /* Selection gets its own surface, distinct from hover above. */
+  --row-selected: #26214d;
+  --row-selected-hover: #2e295c;
+  --bg-input: #161930;
+  --bg-code-block: #0c0e1a;
+
+  --border-subtle: #1e2140;
+  --border-default: #2b2f55;
+  --border-strong: #464c7d;
+
+  --text-primary: #f1f0ff;
+  --text-secondary: #b3b2d8;
+  --text-tertiary: #908fbb;
+  --text-link: #8ad8ff;
+
+  --json-key: #83c2ff;
+  --json-string: #ffc95c;
+  --json-number: #4fe8c0;
+  --json-keyword: #ff7ec7;
+
+  --status-success-bg: #0d2a26;
+  --status-success-text: #4fe8c0;
+  --status-success-border: #175046;
+  --status-warning-bg: #2e2413;
+  --status-warning-text: #ffc95c;
+  --status-warning-border: #55421f;
+  --status-danger-bg: #30162c;
+  --status-danger-text: #ff7ec7;
+  --status-danger-border: #562542;
+  --status-info-bg: #15243f;
+  --status-info-text: #83c2ff;
+  --status-info-border: #274170;
+
+  --method-get: #4fe8c0;
+  --method-post: #ffc95c;
+  --method-put: #b79cff;
+  --method-delete: #ff7ec7;
+  --method-patch: #d9c8ff;
+
+  --diff-add-bg: #0d2a26;
+  --diff-add-text: #4fe8c0;
+  --diff-remove-bg: #30162c;
+  --diff-remove-text: #ff7ec7;
+
+  --accent-primary: #a78bfa;
+  --accent-primary-hover: #8f6df8;
+  --accent-purple: #d9c8ff;
+  --accent-fg: #100a24;
+  --accent-muted: rgba(167, 139, 250, 0.2);
+
+  --overlay: rgba(8, 4, 30, 0.72);
+  --overlay-soft: rgba(8, 4, 30, 0.55);
+
+  --logo-body: #a78bfa;
+  --logo-outline: #f1f0ff;
+  --logo-lens-bg: #0a0b14;
+  --logo-lens-ring: #4fe8c0;
+
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(4, 2, 20, 0.6);
+  --shadow-md: 0 8px 24px rgba(8, 4, 40, 0.6);
+  --shadow-lg: 0 16px 44px rgba(8, 4, 40, 0.7);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   PAPER — a real light theme, not an inverted dark one.
+
+   Light UIs have far less usable surface range, so structure comes
+   from borders rather than background steps, status tints drop to
+   pale washes, the accent DARKENS on hover instead of brightening,
+   --accent-fg flips to white, and the scrim becomes an ink wash
+   because pure black over white reads as a rendering bug.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="paper"] {
+  --bg-app: #eceae5;
+  --bg-sidebar: #f7f6f3;
+  --bg-panel: #fffefc;
+  --bg-panel-alt: #f4f2ee;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1efe9;
+  /* Selection gets its own surface, distinct from hover above. */
+  --row-selected: #e2ecfa;
+  --row-selected-hover: #d6e4f7;
+  --bg-input: #ffffff;
+  --bg-code-block: #f6f5f1;
+
+  --border-subtle: #e2ded6;
+  --border-default: #cdc8be;
+  --border-strong: #a8a29a;
+
+  --text-primary: #1a1917;
+  --text-secondary: #4a4741;
+  --text-tertiary: #6b675f;
+  --text-link: #1d4ed8;
+
+  --json-key: #0451a5;
+  --json-string: #a31515;
+  --json-number: #098658;
+  --json-keyword: #0000ff;
+
+  --status-success-bg: #e4f6ea;
+  --status-success-text: #15803d;
+  --status-success-border: #b4e0c2;
+  --status-warning-bg: #fdf1dc;
+  --status-warning-text: #a25d06;
+  --status-warning-border: #f0d3a0;
+  --status-danger-bg: #fdeaea;
+  --status-danger-text: #c0261f;
+  --status-danger-border: #f3c2bf;
+  --status-info-bg: #e6effd;
+  --status-info-text: #1d4ed8;
+  --status-info-border: #c0d5f7;
+
+  --method-get: #15803d;
+  --method-post: #a25d06;
+  --method-put: #6b32c9;
+  --method-delete: #c0261f;
+  --method-patch: #8b5cf6;
+
+  --diff-add-bg: #e4f6ea;
+  --diff-add-text: #15803d;
+  --diff-remove-bg: #fdeaea;
+  --diff-remove-text: #c0261f;
+
+  --accent-primary: #1f7a45;
+  --accent-primary-hover: #176035;
+  --accent-purple: #6b32c9;
+  --accent-fg: #ffffff;
+  --accent-muted: rgba(31, 122, 69, 0.14);
+
+  --overlay: rgba(38, 34, 28, 0.42);
+  --overlay-soft: rgba(38, 34, 28, 0.3);
+
+  --logo-body: #1f7a45;
+  --logo-outline: #ffffff;
+  --logo-lens-bg: #fffefc;
+  --logo-lens-ring: #176035;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 9px;
+
+  /* Softer, tighter shadows — dark-theme shadows look muddy on white */
+  --shadow-sm: 0 1px 1px rgba(26, 25, 23, 0.06);
+  --shadow-md: 0 3px 10px rgba(26, 25, 23, 0.1);
+  --shadow-lg: 0 10px 28px rgba(26, 25, 23, 0.14);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   NEON BRUT — brutalist dark. Magenta/lime, hard offset shadows,
+   heavy type. Personality lives in shadows and weight; the data
+   area stays legible and status colours stay semantic.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="neonbrut"] {
+  --bg-app: #0b0b0f;
+  --bg-sidebar: #121218;
+  --bg-panel: #16161d;
+  --bg-panel-alt: #101015;
+  --bg-card: #1f1f29;
+  --bg-card-hover: #2a2a37;
+  /* Selection gets its own surface, distinct from hover above. */
+  --row-selected: #3a1040;
+  --row-selected-hover: #47144e;
+  --bg-input: #191921;
+  --bg-code-block: #0d0d12;
+
+  --border-subtle: #2b2b38;
+  --border-default: #45455a;
+  --border-strong: #6a6a88;
+
+  --json-key: #7df9ff;
+  --json-string: #ffcf33;
+  --json-number: #b6ff3d;
+  --json-keyword: #ff5fa2;
+
+  --text-primary: #fbfbfe;
+  --text-secondary: #bcbcd0;
+  --text-tertiary: #9797b0;
+  --text-link: #7df9ff;
+
+  --status-success-bg: #12300f;
+  --status-success-text: #b6ff3d;
+  --status-success-border: #2c5c14;
+  --status-warning-bg: #33260a;
+  --status-warning-text: #ffcf33;
+  --status-warning-border: #5e4711;
+  --status-danger-bg: #340f22;
+  --status-danger-text: #ff5fa2;
+  --status-danger-border: #5e1b3c;
+  --status-info-bg: #101f38;
+  --status-info-text: #6fbcff;
+  --status-info-border: #1f3c66;
+
+  --method-get: #b6ff3d;
+  --method-post: #ffcf33;
+  --method-put: #c08bff;
+  --method-delete: #ff5fa2;
+  --method-patch: #e0b6ff;
+
+  --diff-add-bg: #12300f;
+  --diff-add-text: #b6ff3d;
+  --diff-remove-bg: #340f22;
+  --diff-remove-text: #ff5fa2;
+
+  --accent-primary: #ff2e97;
+  --accent-primary-hover: #e51f83;
+  --accent-purple: #c08bff;
+  --accent-fg: #14000a;
+  --accent-muted: rgba(255, 46, 151, 0.2);
+
+  --overlay: rgba(0, 0, 0, 0.75);
+  --overlay-soft: rgba(0, 0, 0, 0.6);
+
+  --logo-body: #ff2e97;
+  --logo-outline: #fbfbfe;
+  --logo-lens-bg: #0b0b0f;
+  --logo-lens-ring: #b6ff3d;
+
+  /* Hard edges, hard shadows */
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+
+  --shadow-sm: 2px 2px 0 #000000;
+  --shadow-md: 4px 4px 0 #000000;
+  --shadow-lg: 6px 6px 0 #000000;
+
+  /* Heavier across the board */
+  --font-weight-medium: 600;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 800;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   CLAUDE — warm dark interface with a soft amber/copper accent.
+   Inspired by the Claude Code terminal aesthetic: muted cream text on
+   deep espresso surfaces, with warm amber highlights instead of the
+   default green. Calm and readable for long debugging sessions.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="claude"] {
+  --bg-app: #0f0e0d;
+  --bg-sidebar: #151413;
+  --bg-panel: #1a1917;
+  --bg-panel-alt: #131211;
+  --bg-card: #23221f;
+  --bg-card-hover: #2c2a27;
+  --row-selected: #2e231b;
+  --row-selected-hover: #382b21;
+  --bg-input: #1e1d1b;
+  --bg-code-block: #121110;
+
+  --json-key: #8dbbe8;
+  --json-string: #f2b65a;
+  --json-number: #7dd87d;
+  --json-keyword: #c4a4f7;
+
+  --border-subtle: #272521;
+  --border-default: #36332f;
+  --border-strong: #4f4b45;
+
+  --text-primary: #f5f2ec;
+  --text-secondary: #c4bdb2;
+  --text-tertiary: #958e85;
+  --text-link: #d97757;
+
+  --status-success-bg: #142819;
+  --status-success-text: #7dd87d;
+  --status-success-border: #234830;
+  --status-warning-bg: #30220d;
+  --status-warning-text: #f2b65a;
+  --status-warning-border: #553d18;
+  --status-danger-bg: #2e1616;
+  --status-danger-text: #e68585;
+  --status-danger-border: #522323;
+  --status-info-bg: #1a2636;
+  --status-info-text: #8dbbe8;
+  --status-info-border: #2d425d;
+
+  --method-get: #7dd87d;
+  --method-post: #f2b65a;
+  --method-put: #c4a4f7;
+  --method-delete: #e68585;
+  --method-patch: #d6baf9;
+
+  --diff-add-bg: #142819;
+  --diff-add-text: #7dd87d;
+  --diff-remove-bg: #2e1616;
+  --diff-remove-text: #e68585;
+
+  --accent-primary: #d97757;
+  --accent-primary-hover: #c56546;
+  --accent-purple: #c4a4f7;
+  --accent-fg: #150a06;
+  --accent-muted: rgba(217, 119, 87, 0.18);
+
+  --overlay: rgba(10, 8, 6, 0.72);
+  --overlay-soft: rgba(10, 8, 6, 0.55);
+
+  --logo-body: #d97757;
+  --logo-outline: #f5f2ec;
+  --logo-lens-bg: #0f0e0d;
+  --logo-lens-ring: #7dd87d;
+
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 11px;
+
+  --shadow-sm: 0 1px 2px rgba(8, 6, 4, 0.5);
+  --shadow-md: 0 6px 18px rgba(10, 7, 4, 0.55);
+  --shadow-lg: 0 12px 32px rgba(12, 8, 5, 0.65);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   MONO — black and white minimalism.
+   Pure ink surfaces, white text, and only greyscale accents. No hue,
+   no chroma: every status and method is communicated through brightness
+   and weight alone.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="mono"] {
+  --bg-app: #000000;
+  --bg-sidebar: #0a0a0a;
+  --bg-panel: #111111;
+  --bg-panel-alt: #080808;
+  --bg-card: #181818;
+  --bg-card-hover: #222222;
+  --row-selected: #1a1a1a;
+  --row-selected-hover: #242424;
+  --bg-input: #141414;
+  --bg-code-block: #050505;
+
+  --border-subtle: #222222;
+  --border-default: #333333;
+  --border-strong: #555555;
+
+  --json-key: #ffffff;
+  --json-string: #b0b0b0;
+  --json-number: #e0e0e0;
+  --json-keyword: #777777;
+
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #777777;
+  --text-link: #ffffff;
+
+  --status-success-bg: #141414;
+  --status-success-text: #b0b0b0;
+  --status-success-border: #333333;
+  --status-warning-bg: #1a1a1a;
+  --status-warning-text: #e0e0e0;
+  --status-warning-border: #3a3a3a;
+  --status-danger-bg: #1a1a1a;
+  --status-danger-text: #ffffff;
+  --status-danger-border: #444444;
+  --status-info-bg: #111111;
+  --status-info-text: #999999;
+  --status-info-border: #2a2a2a;
+
+  --method-get: #ffffff;
+  --method-post: #cccccc;
+  --method-put: #aaaaaa;
+  --method-delete: #ffffff;
+  --method-patch: #bbbbbb;
+
+  --diff-add-bg: #141414;
+  --diff-add-text: #b0b0b0;
+  --diff-remove-bg: #1a1a1a;
+  --diff-remove-text: #ffffff;
+
+  --accent-primary: #ffffff;
+  --accent-primary-hover: #cccccc;
+  --accent-purple: #dddddd;
+  --accent-fg: #000000;
+  --accent-muted: rgba(255, 255, 255, 0.14);
+
+  --overlay: rgba(0, 0, 0, 0.78);
+  --overlay-soft: rgba(0, 0, 0, 0.6);
+
+  --logo-body: #ffffff;
+  --logo-outline: #ffffff;
+  --logo-lens-bg: #000000;
+  --logo-lens-ring: #ffffff;
+
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.65);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   MONO LIGHT — white and black minimalism.
+   The inverse of Mono: clean white surfaces, black text, and only
+   greyscale accents. High contrast without any color.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="mono-light"] {
+  --bg-app: #ffffff;
+  --bg-sidebar: #fafafa;
+  --bg-panel: #f5f5f5;
+  --bg-panel-alt: #eeeeee;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f0f0;
+  --row-selected: #e8e8e8;
+  --row-selected-hover: #dddddd;
+  --bg-input: #ffffff;
+  --bg-code-block: #fafafa;
+
+  --border-subtle: #e0e0e0;
+  --border-default: #cccccc;
+  --border-strong: #999999;
+
+  --json-key: #000000;
+  --json-string: #555555;
+  --json-number: #333333;
+  --json-keyword: #888888;
+
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-tertiary: #888888;
+  --text-link: #000000;
+
+  --status-success-bg: #f0f0f0;
+  --status-success-text: #333333;
+  --status-success-border: #d0d0d0;
+  --status-warning-bg: #f5f5f5;
+  --status-warning-text: #222222;
+  --status-warning-border: #d8d8d8;
+  --status-danger-bg: #f5f5f5;
+  --status-danger-text: #000000;
+  --status-danger-border: #bbbbbb;
+  --status-info-bg: #f0f0f0;
+  --status-info-text: #555555;
+  --status-info-border: #cccccc;
+
+  --method-get: #000000;
+  --method-post: #333333;
+  --method-put: #666666;
+  --method-delete: #000000;
+  --method-patch: #444444;
+
+  --diff-add-bg: #f0f0f0;
+  --diff-add-text: #333333;
+  --diff-remove-bg: #f5f5f5;
+  --diff-remove-text: #000000;
+
+  --accent-primary: #000000;
+  --accent-primary-hover: #333333;
+  --accent-purple: #444444;
+  --accent-fg: #ffffff;
+  --accent-muted: rgba(0, 0, 0, 0.1);
+
+  --overlay: rgba(255, 255, 255, 0.78);
+  --overlay-soft: rgba(255, 255, 255, 0.6);
+
+  --logo-body: #000000;
+  --logo-outline: #000000;
+  --logo-lens-bg: #ffffff;
+  --logo-lens-ring: #000000;
+
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   NEO-BRUT — loud, high-contrast, anti-corporate.
+   Cream newsprint canvas, pure black ink, hot red / vivid yellow /
+   soft violet accents. Thick hard borders, zero rounding, and solid
+   offset shadows replace the default subtle elevation.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="neo-brut"] {
+  --bg-app: #FFFDF5;
+  --bg-sidebar: #FFFDF5;
+  --bg-panel: #FFFFFF;
+  --bg-panel-alt: #FFFDF5;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFD93D;
+  --row-selected: #C4B5FD;
+  --row-selected-hover: #B8A5F5;
+  --bg-input: #FFFFFF;
+  --bg-code-block: #FFFDF5;
+
+  --border-subtle: #000000;
+  --border-default: #000000;
+  --border-strong: #000000;
+
+  --json-key: #000000;
+  --json-string: #B91C1C;
+  --json-number: #6D28D9;
+  --json-keyword: #000000;
+
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-tertiary: #000000;
+  --text-link: #FF6B6B;
+
+  --status-success-bg: #FFD93D;
+  --status-success-text: #000000;
+  --status-success-border: #000000;
+  --status-warning-bg: #FFD93D;
+  --status-warning-text: #000000;
+  --status-warning-border: #000000;
+  --status-danger-bg: #FF6B6B;
+  --status-danger-text: #000000;
+  --status-danger-border: #000000;
+  --status-info-bg: #C4B5FD;
+  --status-info-text: #000000;
+  --status-info-border: #000000;
+
+  --method-get: #000000;
+  --method-post: #FF6B6B;
+  --method-put: #FFD93D;
+  --method-delete: #000000;
+  --method-patch: #C4B5FD;
+
+  --diff-add-bg: #FFD93D;
+  --diff-add-text: #000000;
+  --diff-remove-bg: #FF6B6B;
+  --diff-remove-text: #000000;
+
+  --accent-primary: #FF6B6B;
+  --accent-primary-hover: #FF5252;
+  --accent-purple: #C4B5FD;
+  --accent-fg: #000000;
+  --accent-muted: rgba(255, 107, 107, 0.25);
+
+  --overlay: rgba(0, 0, 0, 0.72);
+  --overlay-soft: rgba(0, 0, 0, 0.55);
+
+  --logo-body: #FF6B6B;
+  --logo-outline: #000000;
+  --logo-lens-bg: #FFFDF5;
+  --logo-lens-ring: #000000;
+
+  --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-sm: 4px 4px 0px 0px #000000;
+  --shadow-md: 8px 8px 0px 0px #000000;
+  --shadow-lg: 12px 12px 0px 0px #000000;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   CHROME DEVTOOLS — the default Chrome DevTools dark palette.
+   Neutral greys, DevTools blue accent, syntax-inspired status colours.
+   A near 1:1 port of the surface colours used by Chrome DevTools.
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="chrome-devtools"] {
+  --bg-app: #1e1e1e;
+  --bg-sidebar: #252526;
+  --bg-panel: #1e1e1e;
+  --bg-panel-alt: #202020;
+  --bg-card: #2d2d30;
+  --bg-card-hover: #3c3c3c;
+  /* Selection matches the DevTools list selection blue. */
+  --row-selected: #094771;
+  --row-selected-hover: #0e5a8a;
+  --bg-input: #3c3c3c;
+  --bg-code-block: #1e1e1e;
+
+  --border-subtle: #2d2d30;
+  --border-default: #3c3c3c;
+  --border-strong: #5a5a5a;
+
+  --text-primary: #cccccc;
+  --text-secondary: #858585;
+  --text-tertiary: #666666;
+  --text-link: #4aa8ff;
+
+  /* DevTools object-inspector colours: blue keys, orange strings,
+     purple numbers and keywords. */
+  --json-key: #9bbbdc;
+  --json-string: #f28b54;
+  --json-number: #998cff;
+  --json-keyword: #998cff;
+
+  --status-success-bg: #1e3a2b;
+  --status-success-text: #89d185;
+  --status-success-border: #2e5a3f;
+  --status-warning-bg: #3a3000;
+  --status-warning-text: #cca700;
+  --status-warning-border: #5a4d00;
+  --status-danger-bg: #3a1616;
+  --status-danger-text: #f14c4c;
+  --status-danger-border: #5a2525;
+  --status-info-bg: #0e2a3d;
+  --status-info-text: #3794ff;
+  --status-info-border: #1e4a6e;
+
+  --method-get: #89d185;
+  --method-post: #ce9178;
+  --method-put: #569cd6;
+  --method-delete: #f14c4c;
+  --method-patch: #c586c0;
+
+  --diff-add-bg: #1e3a2b;
+  --diff-add-text: #89d185;
+  --diff-remove-bg: #3a1616;
+  --diff-remove-text: #f14c4c;
+
+  --accent-primary: #0e639c;
+  --accent-primary-hover: #1177bb;
+  --accent-purple: #c586c0;
+  --accent-fg: #ffffff;
+  --accent-muted: rgba(14, 99, 156, 0.2);
+
+  --overlay: rgba(0, 0, 0, 0.5);
+  --overlay-soft: rgba(0, 0, 0, 0.38);
+
+  --logo-body: #0e639c;
+  --logo-outline: #cccccc;
+  --logo-lens-bg: #1e1e1e;
+  --logo-lens-ring: #89d185;
+
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Cross-theme polish that depends on theme identity.
+   ─────────────────────────────────────────────────────────────── */
+
+/* Terminal + Neon Brut are square themes — kill the pill rounding on
+   the scrollbar thumb so it matches the rest of the chrome. */
+[data-theme="terminal"] ::-webkit-scrollbar-thumb,
+[data-theme="neonbrut"] ::-webkit-scrollbar-thumb {
+  border-radius: 0;
+}
+
+/* Theme transition. Applied only while switching (see useTheme.js) so
+   the app never pays for these transitions during normal interaction —
+   animating colour on every hover in a dense table is expensive. */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-switching,
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition-duration: 1ms !important;
+  }
+}

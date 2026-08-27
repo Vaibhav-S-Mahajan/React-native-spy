@@ -1,0 +1,263 @@
+/* DownloadButton.css — platform-aware split button.
+
+   Anatomy: a wide primary action that names the visitor's OS, plus a narrow
+   caret that opens a menu of every other build. The two halves share one
+   border so they read as a single control. */
+
+.dlb {
+  position: relative;
+  display: inline-flex;
+  vertical-align: top;
+}
+
+.dlb__group {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 8px 24px rgba(34, 197, 94, 0.26);
+  transition:
+    transform 200ms var(--ease),
+    box-shadow 200ms var(--ease),
+    background 200ms var(--ease);
+}
+
+.dlb:hover .dlb__group {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 14px 34px rgba(34, 197, 94, 0.38);
+}
+
+.dlb__group:active {
+  transform: translateY(0);
+}
+
+/* ─── Primary half ─── */
+
+.dlb__main {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  height: 58px;
+  padding: 0 20px 0 22px;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  color: var(--accent-fg);
+  text-align: left;
+  overflow: hidden;
+}
+
+.dlb__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: rgba(6, 23, 13, 0.14);
+  transition: transform 320ms var(--ease-out);
+}
+
+.dlb:hover .dlb__icon {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.dlb__text {
+  display: grid;
+  gap: 1px;
+}
+
+.dlb__lead {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dlb__meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+/* Sheen sweeps the primary half on hover. */
+.dlb__main::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.34) 50%,
+    transparent 78%
+  );
+  transform: translateX(-130%);
+  transition: transform 680ms var(--ease-out);
+  pointer-events: none;
+}
+
+.dlb:hover .dlb__main::after {
+  transform: translateX(130%);
+}
+
+/* ─── Caret half ─── */
+
+.dlb__toggle {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 58px;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  color: var(--accent-fg);
+  /* Hairline divider, drawn with a border so it never shifts layout. */
+  border-left: 1px solid rgba(6, 23, 13, 0.22);
+  transition: background 180ms var(--ease);
+}
+
+.dlb__toggle:hover,
+.dlb__toggle[aria-expanded='true'] {
+  background: rgba(6, 23, 13, 0.13);
+}
+
+.dlb__caret {
+  transition: transform 260ms var(--ease-out);
+}
+
+.dlb__toggle[aria-expanded='true'] .dlb__caret {
+  transform: rotate(180deg);
+}
+
+/* Focus rings sit on the halves, not the shared wrapper. */
+.dlb__main:focus-visible,
+.dlb__toggle:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 3px;
+}
+
+/* ─── Menu ─── */
+
+.dlb__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 100%;
+  width: max-content;
+  z-index: 20;
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-lg);
+  text-align: left;
+  animation: dlb-menu 200ms var(--ease-out);
+  transform-origin: top left;
+}
+
+@keyframes dlb-menu {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.dlb__group-label {
+  display: block;
+  padding: 8px 12px 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.dlb__opt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  white-space: nowrap;
+  transition:
+    background 160ms var(--ease),
+    color 160ms var(--ease);
+}
+
+.dlb__opt:hover,
+.dlb__opt:focus-visible {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.dlb__opt svg {
+  color: var(--text-tertiary);
+}
+
+.dlb__opt:hover svg,
+.dlb__opt:focus-visible svg {
+  color: var(--accent);
+}
+
+.dlb__opt-ext {
+  margin-left: auto;
+  padding-left: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.dlb__sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border-subtle);
+}
+
+/* ─── Fallback when the OS is unknown ─── */
+
+.dlb--plain .dlb__main {
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 560px) {
+  .dlb,
+  .dlb__group {
+    width: 100%;
+  }
+  .dlb__main {
+    flex: 1;
+    /* Long OS labels must not push the caret off the button. */
+    min-width: 0;
+  }
+  .dlb__lead,
+  .dlb__meta {
+    white-space: normal;
+  }
+  .dlb__menu {
+    width: 100%;
+    /* Never wider than the viewport, whatever the container does. */
+    max-width: calc(100vw - 48px);
+  }
+  .dlb__opt {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dlb:hover .dlb__group {
+    transform: none;
+  }
+  .dlb__main::after {
+    display: none;
+  }
+}

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="paper">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme 5 — Paper · React Native Spy</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME 5 — PAPER
+   A light theme done properly, not an inverted dark one. Warm
+   off-white surfaces, true ink text, restrained colour. For bright
+   rooms, projectors and screen-shared debugging sessions.
+
+   Note the deliberate choices: borders carry structure instead of
+   background steps (light UIs have far less usable surface range),
+   status tints are ~8% washes rather than the 45–55% used in dark,
+   and the accent darkens rather than brightens on hover.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-app: #eceae5;
+  --bg-chrome: #f7f6f3;
+  --bg-panel: #fffefc;
+  --bg-panel-alt: #f4f2ee;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-code: #f6f5f1;
+
+  --row-hover: #f3f1ec;
+  --row-selected: #e2ecfa;
+  --row-selected-hover: #d6e4f7;
+
+  --border-subtle: #e2ded6;
+  --border-default: #cdc8be;
+  --border-strong: #a8a29a;
+
+  --text-primary: #1a1917;
+  --text-secondary: #4a4741;
+  --text-tertiary: #6f6b63;   /* ~5.3:1 on --bg-panel */
+  --text-link: #1d4ed8;
+
+  --ok-bg: #e4f6ea;   --ok-fg: #15803d;   --ok-bd: #b4e0c2;
+  --warn-bg: #fdf1dc; --warn-fg: #a25d06; --warn-bd: #f0d3a0;
+  --err-bg: #fdeaea;  --err-fg: #c0261f;  --err-bd: #f3c2bf;
+  --info-bg: #e6effd; --info-fg: #1d4ed8; --info-bd: #c0d5f7;
+
+  --accent: #1f7a45;
+  --accent-hover: #176035;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(31, 122, 69, 0.12);
+
+  --m-get: #15803d; --m-post: #a25d06; --m-put: #6b32c9;
+  --m-delete: #c0261f; --m-patch: #8b5cf6;
+
+  --glow: 0 0 0 2px rgba(21, 128, 61, 0.18);
+
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 9px;
+
+  /* Light UIs need softer, tighter shadows or they look muddy */
+  --shadow-sm: 0 1px 1px rgba(26, 25, 23, 0.06);
+  --shadow-md: 0 3px 10px rgba(26, 25, 23, 0.10);
+  --shadow-lg: 0 10px 28px rgba(26, 25, 23, 0.14);
+}
+
+/* Status tints must be far weaker on light surfaces */
+.row.is-err { background: color-mix(in srgb, var(--err-bg) 65%, transparent); }
+.row.is-warn { background: color-mix(in srgb, var(--warn-bg) 60%, transparent); }
+.lvl-warn { background: color-mix(in srgb, var(--warn-bg) 55%, transparent); }
+.lvl-error { background: color-mix(in srgb, var(--err-bg) 60%, transparent); }
+
+/* Panels sit as cards on the app background */
+.pane-list, .pane-detail { box-shadow: var(--shadow-sm); }
+.titlebar { box-shadow: 0 1px 0 rgba(26, 25, 23, 0.05); }
+.seg { background: #eeece7; }
+.seg-btn.is-on { background: #ffffff; }
+::-webkit-scrollbar-thumb { background: #c4bfb5; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29a; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="theme-tag">Theme 5 · <b>Paper</b></div>
+<script src="harness.js"></script>
+<script>mountApp(document.getElementById('root'))</script>
+</body>
+</html>

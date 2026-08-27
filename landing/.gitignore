@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+
+# Intermediate SSR bundle produced by `npm run build:ssr` and consumed by
+# scripts/prerender.mjs, which deletes it on success. Only survives a failed build.
+.ssr-dist
+
+*.local
+.DS_Store
+.vite

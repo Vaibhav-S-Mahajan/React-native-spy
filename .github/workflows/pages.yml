@@ -1,0 +1,101 @@
+name: Deploy landing page
+
+# Builds the marketing site in landing/ and publishes it to GitHub Pages.
+#
+# One-time setup: Settings → Pages → Source → "GitHub Actions". Without that,
+# the deploy step fails with a 404 on the Pages API.
+#
+# The site is prerendered to static HTML at build time (see
+# landing/scripts/prerender.mjs), so what lands on Pages already contains the
+# page copy, canonical/OG tags and JSON-LD before any JavaScript runs.
+
+on:
+  push:
+    branches: [main]
+    # Only rebuild when the site or this workflow changes. A change to the
+    # Electron app cannot affect the published output.
+    paths:
+      - 'landing/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once, and do not cancel one in flight — a cancelled
+# deploy can leave the Pages environment mid-update.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+
+      - name: Install dependencies
+        working-directory: landing
+        run: npm ci
+
+      # Runs vite build → SSR build → prerender. The prerender step fails the
+      # job if the rendered HTML comes back suspiciously small, so a component
+      # that throws during server rendering cannot ship as a blank page.
+      - name: Build and prerender
+        working-directory: landing
+        run: npm run build
+
+      # Cheap guard against publishing a shell. Checks that real markup and the
+      # SEO tags actually made it into the output.
+      - name: Verify prerendered output
+        working-directory: landing
+        run: |
+          set -e
+          for needle in \
+            'rel="canonical"' \
+            'property="og:image"' \
+            'application/ld+json' \
+            'class="hero__title"'
+          do
+            if ! grep -q "$needle" dist/index.html; then
+              echo "::error::dist/index.html is missing $needle"
+              exit 1
+            fi
+          done
+          test -s dist/sitemap.xml
+          test -s dist/robots.txt
+          test -s dist/og.png
+          echo "dist/index.html is $(wc -c < dist/index.html) bytes"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: landing/dist
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

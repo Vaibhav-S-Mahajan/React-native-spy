@@ -1,0 +1,188 @@
+/* Nav.css — sticky top navigation with a scroll-progress indicator. */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  transition:
+    background 240ms var(--ease),
+    border-color 240ms var(--ease),
+    backdrop-filter 240ms var(--ease);
+  border-bottom: 1px solid transparent;
+}
+
+/* Chrome only appears once the page has scrolled, so the hero stays clean. */
+.nav--scrolled {
+  background: rgba(10, 10, 12, 0.78);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-bottom-color: var(--border-subtle);
+}
+
+.nav__inner {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-right: auto;
+}
+
+.nav__brand:hover .logo {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.nav__brand .logo {
+  transition: transform 300ms var(--ease-out);
+}
+
+.nav__ver {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  padding: 2px 7px;
+  letter-spacing: 0.04em;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav__link {
+  position: relative;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  transition: color 160ms var(--ease);
+}
+
+.nav__link:hover {
+  color: var(--text-primary);
+}
+
+/* Underline grows from the centre on hover — cheap, and stays crisp. */
+.nav__link::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
+  height: 1.5px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transition: transform 220ms var(--ease-out);
+}
+
+.nav__link:hover::after,
+.nav__link[aria-current='true']::after {
+  transform: scaleX(1);
+}
+
+.nav__link[aria-current='true'] {
+  color: var(--text-primary);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Scroll progress sits on the nav's bottom edge. */
+.nav__progress {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+/* ─── Mobile ─── */
+
+.nav__burger {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  place-items: center;
+}
+
+.nav__mobile {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 12, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 24px 20px;
+  display: grid;
+  gap: 2px;
+  transform-origin: top;
+  animation: sheet-in 220ms var(--ease-out);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.nav__mobile a {
+  padding: 13px 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav__mobile a:last-of-type {
+  border-bottom: none;
+}
+
+.nav__mobile .btn {
+  margin-top: 12px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .nav__links,
+  .nav__actions {
+    display: none;
+  }
+  .nav__burger {
+    display: grid;
+  }
+}

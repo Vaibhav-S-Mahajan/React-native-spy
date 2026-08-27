@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-theme="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme 1 — Graphite · React Native Spy</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME 1 — GRAPHITE
+   A refined evolution of the current look. Neutral greys, green
+   accent, tightest density of the six. Lowest-risk migration:
+   the hues barely move, but rhythm, contrast and states are fixed.
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-app: #08080a;
+  --bg-chrome: #0c0c0e;
+  --bg-panel: #101013;
+  --bg-panel-alt: #0d0d10;
+  --bg-card: #17171b;
+  --bg-input: #131317;
+  --bg-code: #0a0a0c;
+
+  --row-hover: #17171b;
+  --row-selected: #1d2531;
+  --row-selected-hover: #222b39;
+
+  --border-subtle: #1e1e23;
+  --border-default: #2a2a31;
+  --border-strong: #3c3c45;
+
+  --text-primary: #f4f4f5;
+  --text-secondary: #b0b0b8;
+  --text-tertiary: #85858f;   /* lifted to ~5.4:1 on --bg-panel, was 4.1:1 */
+  --text-link: #7fb0ff;
+
+  --ok-bg: #0f2419;   --ok-fg: #4ade80;   --ok-bd: #1d4430;
+  --warn-bg: #281b0d; --warn-fg: #f7b23b; --warn-bd: #493216;
+  --err-bg: #281313;  --err-fg: #fb8484;  --err-bd: #471e1e;
+  --info-bg: #101e2c; --info-fg: #6fb0fb; --info-bd: #1d385c;
+
+  --accent: #22c55e;
+  --accent-hover: #16a34a;
+  --accent-fg: #04160b;
+  --accent-soft: rgba(34, 197, 94, 0.13);
+
+  --glow: 0 0 6px rgba(74, 222, 128, 0.6);
+
+  /* Densest of the six — 26px rows */
+  --row-h: 26px;
+  --toolbar-h: 34px;
+  --tabbar-h: 34px;
+  --devicebar-h: 34px;
+
+  --radius-sm: 4px; --radius-md: 5px; --radius-lg: 7px;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="theme-tag">Theme 1 · <b>Graphite</b></div>
+<script src="harness.js"></script>
+<script>mountApp(document.getElementById('root'))</script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+/* ═══════════════════════════════════════════════════════
+   React Native Spy — Design System
+   ───────────────────────────────────────────────────────
+   This file owns STRUCTURE plus the DEFAULT token values.
+   Palettes live in themes.css as [data-theme="…"] blocks.
+
+   :root below is the complete token contract. Every theme
+   overrides a subset, so any token a theme forgets falls
+   back to a sane default here instead of resolving to an
+   invalid value. Add a token here first, then theme it.
+   ═══════════════════════════════════════════════════════ */
+
+/* Fonts are native system stacks — no network fetch, crisp on every OS.
+   UI: -apple-system / Segoe UI / system-ui. Code: SF Mono / ui-monospace. */
+
+:root,
+[data-theme="graphite"] {
+  /* ─── Base Surfaces (layered darkness) ─── */
+  --bg-app: #0a0a0c;
+  --bg-sidebar: #0d0d10;
+  --bg-panel: #111114;
+  --bg-panel-alt: #0e0e11;
+  --bg-card: #17171b;
+  --bg-card-hover: #1c1c21;
+  --bg-input: #18181c;
+  --bg-code-block: #0c0c0f;
+
+  /* ─── Borders / Dividers ─── */
+  --border-subtle: #222226;
+  --border-default: #2a2a30;
+  --border-strong: #3a3a42;
+
+  /* ─── Text ─── */
+  --text-primary: #f2f2f3;
+  --text-secondary: #a8a8b0;
+  --text-tertiary: #6c6c76;
+  --text-link: #6ea8fe;
+
+  /* ─── JSON value syntax ─── */
+  --json-key: #9cdcfe;
+  --json-string: #ce9178;
+  --json-number: #b5cea5;
+  --json-keyword: #569cd6;
+
+  /* ─── Status / Semantic ─── */
+  --status-success-bg: #10261b;
+  --status-success-text: #4ade80;
+  --status-success-border: #1e4530;
+
+  --status-warning-bg: #2a1d0e;
+  --status-warning-text: #f5a623;
+  --status-warning-border: #4a3417;
+
+  --status-danger-bg: #2a1414;
+  --status-danger-text: #f87171;
+  --status-danger-border: #4a1f1f;
+
+  --status-info-bg: #12202e;
+  --status-info-text: #60a5fa;
+  --status-info-border: #1e3a5f;
+
+  /* ─── Method Colors ─── */
+  --method-get: #4ade80;
+  --method-post: #f5a623;
+  --method-put: #a78bfa;
+  --method-delete: #f87171;
+  --method-patch: #c4b5fd;
+
+  /* ─── Diff Colors ─── */
+  --diff-add-bg: #0d2818;
+  --diff-add-text: #4ade80;
+  --diff-remove-bg: #2c1414;
+  --diff-remove-text: #f87171;
+
+  /* ─── Accent / Brand ─── */
+  --accent-primary: #22c55e;
+  --accent-primary-hover: #16a34a;
+  --accent-purple: #a78bfa;
+  /* Text/icon colour that sits ON an accent fill. Must stay legible per theme,
+     so light themes flip this to white while dark themes use a near-black. */
+  --accent-fg: #06170d;
+  /* Low-opacity accent wash. Used for the SignalR badge and subtle highlights.
+     Was referenced by WebSocketTab but never defined — the badge rendered with
+     no background until this was added. */
+  --accent-muted: rgba(34, 197, 94, 0.16);
+
+  /* ─── Modal scrim ─── */
+  /* Themed rather than hardcoded rgba(0,0,0,…): a black scrim over a light
+     theme reads as a bug, so Paper uses a desaturated ink wash instead. */
+  --overlay: rgba(0, 0, 0, 0.65);
+  --overlay-soft: rgba(0, 0, 0, 0.5);
+
+  /* ─── Brand mark ─── */
+  /* Logo.jsx had these baked in as hex, so the logo ignored the theme. */
+  --logo-body: #a78bfa;
+  --logo-outline: #ffffff;
+  --logo-lens-bg: #0a0a0c;
+  --logo-lens-ring: #22c55e;
+
+  /* ─── Typography ─── */
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 20px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  /* Referenced by WebSocketTab.jsx but never defined — the SignalR badge fell
+     back to normal weight. */
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.3;
+  --line-height-normal: 1.5;
+
+  /* ─── Spacing ─── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ─── Radii ─── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* ─── Shadows ─── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+  /* ─── Layout ─── */
+  /* Unified on a 4px rhythm to match design/themes/base.css. Previously the
+     chrome stacked 40 / 32 / 38 / 38 / 24 / 26px with no common unit. */
+  --header-height: 40px;
+  --tab-height: 36px;
+  --devicebar-height: 36px;
+  --toolbar-height: 36px;
+  --colhead-height: 24px;
+  --row-height: 28px;
+  --row-height-lg: 52px;
+
+  /* ─── Control sizes ─── */
+  /* Three only. Panels previously mixed 20/22/24/26/28/30px inside 38px bars. */
+  --control-sm: 24px;
+  --control-md: 28px;
+  --control-lg: 32px;
+
+  /* ─── Row states ─── */
+  /* Selection needs its own surface: hover and selected both resolved to
+     --bg-card-hover, so a hovered row was indistinguishable from the selected
+     one. Themes override --row-selected; it falls back cool-shifted here. */
+  --row-hover: var(--bg-card);
+  --row-selected: #1e2430;
+  --row-selected-hover: #232a38;
+  --selbar: 2px;          /* left accent bar width on selected rows */
+
+  /* ─── Motion ─── */
+  /* Two durations, one easing — replaces the 60/80/100/120ms spread. */
+  --dur-fast: 100ms;
+  --dur-base: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* ─── Micro-type ─── */
+  /* 11px floor for uppercase micro-labels. Inline 8/9/10px is below the
+     legibility floor and should migrate to these. */
+  --text-2xs: 11px;
+  --track-caps: 0.06em;
+}
+
+/* ─── Reset ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: var(--line-height-tight);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-app-region: no-drag;
+  user-select: none;
+}
+
+/* ─── Scrollbar (thin, near-invisible) ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Selection ─── */
+/* Tokenised so selection follows the active theme's accent. */
+::selection {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+/* ─── Focus ─── */
+:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: -1px;
+}
+
+/* ─── Input Reset ─── */
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ─── Title Bar Drag Region ─── */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.titlebar-drag button,
+.titlebar-drag input,
+.titlebar-drag a {
+  -webkit-app-region: no-drag;
+}
+
+/* ─── Code ─── */
+code, pre {
+  font-family: var(--font-mono);
+}
+
+pre {
+  user-select: text;
+}
+
+/* ─── Table ─── */
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th {
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ─── Panel Resizer ─── */
+.panel-resizer {
+  flex-shrink: 0;
+  width: 1px;
+  background: var(--border-subtle);
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background-color 120ms ease;
+}
+
+.panel-resizer:hover,
+.panel-resizer.active {
+  background: var(--accent-primary);
+  width: 2px;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bubbleJump {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+}
+
+.animate-fade-in { animation: fadeIn 150ms ease; }
+.animate-slide-up { animation: slideUp 150ms ease; }
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+.animate-spin { animation: spin 800ms linear infinite; }
+
+/* Three dots bouncing in sequence — the pending-request indicator. */
+.bubble-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.bubble-dots > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: bubbleJump 1s ease-in-out infinite;
+}
+.bubble-dots > span:nth-child(2) { animation-delay: 150ms; }
+.bubble-dots > span:nth-child(3) { animation-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble-dots > span { animation: none; }
+}
+
+/* ─── Row action button (three-dot) — visible on hover ─── */
+div:hover > span > .row-action-btn {
+  opacity: 1 !important;
+}
+.row-action-btn:hover {
+  background: var(--bg-card-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Device tab row hover ─── */
+.device-tab-row:hover {
+  background: var(--bg-card) !important;
+}
+.device-tab-row:hover .device-tab-btn {
+  opacity: 1 !important;
+}
+.device-tab-btn:hover {
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+  background: var(--bg-card-hover) !important;
+}
+
+/* ─── KV row copy button — visible on hover ─── */
+.kv-row:hover .kv-copy-btn {
+  opacity: 0.7 !important;
+}
+.kv-copy-btn:hover {
+  opacity: 1 !important;
+  color: var(--text-primary) !important;
+}

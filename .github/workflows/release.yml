@@ -1,0 +1,116 @@
+name: Release
+
+# Builds and publishes React Native Spy for macOS, Windows and Linux.
+#
+# Trigger: a release is published on GitHub (which includes promoting a draft
+# release to published). You can also run this manually from the Actions tab as
+# a dry-run build.
+#
+# Flow:
+#   1. `make patch|minor|major` bumps the version and pushes a tag.
+#   2. The `draft-release.yml` workflow creates a draft release for that tag.
+#   3. You review the draft on GitHub and click "Publish release".
+#   4. This workflow runs, builds installers on all three platforms, and uploads
+#      them to the already-published release.
+#
+# Signing/notarization is intentionally disabled on every platform. macOS builds
+# are unsigned, so Gatekeeper will warn on first launch and in-app auto-install
+# is not possible there (the app opens the releases page instead). Windows
+# installers are unsigned too, so SmartScreen may warn.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build only, do not upload to a release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      # Keep going so one platform failing still leaves the others' artifacts.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: macOS (x64 + arm64)
+            flag: --mac
+          - os: windows-latest
+            name: Windows (x64)
+            flag: --win
+          - os: ubuntu-latest
+            name: Linux (x64)
+            flag: --linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # electron-builder takes the version from package.json, NOT from the git
+      # tag. Without this, tagging v1.1.0 while package.json still says 1.0.0
+      # produces artifacts and a latest*.yml feed that both claim 1.0.0 — so
+      # electron-updater compares 1.0.0 against 1.0.0, finds nothing newer, and
+      # every client silently stops seeing updates. Sync it before packaging.
+      # `shell: bash` because this step also runs on the Windows runner.
+      - name: Sync package version to tag
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          TAG_VERSION="${TAG#v}"
+          echo "Tag $TAG -> version $TAG_VERSION"
+          # Updates package.json and package-lock.json together. Rejects a
+          # non-semver tag, which fails the build loudly instead of shipping a
+          # release with a bad version.
+          npm version "$TAG_VERSION" --no-git-tag-version --allow-same-version
+          echo "package.json is now $(node -p 'require("./package.json").version')"
+
+      - name: Build renderer, preload and main
+        run: npm run build
+
+      # `--publish always` uploads into the published release; `never` builds only.
+      - name: Package${{ (github.event_name == 'release' && !inputs.dry_run) && ' and publish' || '' }}
+        run: npx electron-builder ${{ matrix.flag }} --publish ${{ (github.event_name == 'release' && !inputs.dry_run) && 'always' || 'never' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No signing on any platform.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-installers
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            dist/*.AppImage
+            dist/*.blockmap
+            dist/latest*.yml
+
+  # No publish job is needed here: the release has already been published by
+  # the user on GitHub, and the build jobs above uploaded the installers to it.

@@ -1,0 +1,536 @@
+/* ═══════════════════════════════════════════════════════════════
+   ui.css — the mockup's visual language, ported into the app.
+
+   This is design/themes/base.css rewritten against the app's real token
+   names (--bg-*, --status-*, --accent-primary …) instead of the mockup's
+   shorthand. Same geometry, same states, same motion.
+
+   Contains ZERO colour literals — every value resolves through a token, so
+   all six themes get this behaviour for free.
+
+   Load order matters: theme.css (tokens + reset) → themes.css (palettes)
+   → ui.css (classes). Later files win on equal specificity.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────
+   1. Focus — visible on every surface.
+
+   The old rule used outline-offset:-1px, which draws INSIDE the element and
+   gets clipped by neighbours in dense tables. Outset by default; dense rows
+   use an inset shadow instead since they can't spare the space.
+   ───────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+.row:focus-visible,
+.scroll:focus-visible,
+.clog:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-primary);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. Scrollbars — wider track, inset thumb (mockup style).
+   ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Square themes shouldn't have pill scrollbars. */
+[data-theme="terminal"] ::-webkit-scrollbar-thumb,
+[data-theme="neonbrut"] ::-webkit-scrollbar-thumb { border-radius: 0; }
+
+/* ─────────────────────────────────────────────────────────────
+   3. Chrome — title bar, tab bars.
+   ───────────────────────────────────────────────────────────── */
+.titlebar {
+  display: flex; align-items: center; gap: var(--space-3);
+  height: var(--header-height);
+  padding: 0 var(--space-4);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tl-spacer { width: 56px; flex-shrink: 0; }
+.rule { width: 1px; height: 16px; background: var(--border-default); flex-shrink: 0; }
+.grow { flex: 1; }
+
+/* Panel tab bar with a sliding underline. */
+.tabbar {
+  position: relative;
+  display: flex; align-items: stretch;
+  height: var(--tab-height);
+  flex-shrink: 0;
+  background: var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tab {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: 0 var(--space-4);
+  border: 0; background: transparent;
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.tab:hover { color: var(--text-secondary); }
+.tab.is-active { color: var(--text-primary); font-weight: var(--font-weight-semibold); }
+.tab-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  /* Reserved width stops every sibling shifting as counts grow. */
+  min-width: 2ch; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.tab.is-active .tab-count { color: var(--accent-primary); }
+.tab-ink {
+  position: absolute; bottom: 0; left: 0;
+  height: 2px; width: 0;
+  background: var(--accent-primary);
+  border-radius: 999px 999px 0 0;
+  transition: transform var(--dur-base) var(--ease), width var(--dur-base) var(--ease);
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. Device bar.
+   ───────────────────────────────────────────────────────────── */
+.devicebar {
+  display: flex; align-items: stretch;
+  height: var(--devicebar-height);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-default);
+  overflow-x: auto; overflow-y: hidden;
+}
+.devtab {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  min-width: 148px; max-width: 260px;
+  flex-shrink: 0;
+  border: 0;
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.devtab:hover { background: var(--row-hover); }
+.devtab.is-active {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  border-bottom-color: var(--accent-primary);
+}
+.devtab-name {
+  flex: 1; min-width: 0; text-align: left;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.devtab.is-active .pill { color: var(--text-secondary); }
+
+/* Reveal on hover OR focus. Hover-only reveals are invisible to keyboard. */
+.devtab-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  border: 0; background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  opacity: 0; flex-shrink: 0; cursor: pointer;
+  transition: opacity var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.devtab:hover .devtab-x,
+.devtab:focus-within .devtab-x,
+.devtab-x:focus-visible { opacity: 1; }
+.devtab-x:hover { background: var(--status-danger-bg); color: var(--status-danger-text); }
+
+/* ─────────────────────────────────────────────────────────────
+   5. Status indicators.
+   ───────────────────────────────────────────────────────────── */
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+.dot.is-live {
+  background: var(--status-success-text);
+  box-shadow: 0 0 6px var(--status-success-text);
+}
+.dot.is-off { background: var(--text-tertiary); box-shadow: none; }
+
+/* ─────────────────────────────────────────────────────────────
+   6. Buttons and fields — three sizes only.
+   ───────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  height: var(--control-md);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap; cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.btn:active { transform: translateY(1px); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-card); color: var(--text-primary); }
+.btn-accent {
+  background: var(--accent-primary);
+  color: var(--accent-fg);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+.btn-accent:hover { background: var(--accent-primary-hover); }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--control-lg); height: var(--control-lg);
+  border: 1px solid transparent; background: transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+              opacity var(--dur-fast) var(--ease);
+}
+.icon-btn:hover { background: var(--bg-card); color: var(--text-primary); }
+.icon-btn.is-danger:hover { background: var(--status-danger-bg); color: var(--status-danger-text); }
+.icon-btn:disabled { opacity: 0.4; cursor: default; }
+.icon-btn:disabled:hover { background: transparent; color: var(--text-tertiary); }
+.icon-btn.sm { width: var(--control-md); height: var(--control-md); }
+/* Small visual box, 32px hit area — the box doesn't grow, the target does. */
+.icon-btn.xs {
+  width: 20px; height: 20px;
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+.icon-btn.xs::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: var(--control-lg); height: var(--control-lg);
+  transform: translate(-50%, -50%);
+}
+
+.toolbar {
+  display: flex; align-items: center; gap: var(--space-2);
+  height: var(--toolbar-height);
+  padding: 0 var(--space-3);
+  flex-shrink: 0;
+  background: var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.field {
+  display: flex; align-items: center; gap: var(--space-2);
+  flex: 1; min-width: 0;
+  height: var(--control-md);
+  padding: 0 var(--space-2);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.field:focus-within { border-color: var(--accent-primary); color: var(--text-secondary); }
+.field input {
+  flex: 1; min-width: 0;
+  background: transparent; border: 0; outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
+.field input::placeholder { color: var(--text-tertiary); }
+.field input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+/* Segmented toggle group. */
+.seg {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.seg-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  height: 20px; padding: 0 var(--space-2);
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+  cursor: pointer; position: relative;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.seg-btn::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: var(--control-lg);
+  transform: translateY(-50%);
+}
+.seg-btn:hover { color: var(--text-secondary); }
+.seg-btn[aria-pressed="true"] {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+/* Glyph carries toggle state alongside colour. */
+.tick {
+  font-size: 9px; opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.seg-btn[aria-pressed="true"] .tick { opacity: 1; }
+
+.count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   7. Data grid — rows, states, column headers.
+   ───────────────────────────────────────────────────────────── */
+.colhead {
+  display: grid; align-items: stretch;
+  height: var(--colhead-height);
+  padding: 0 var(--space-3);
+  flex-shrink: 0;
+  background: var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.colhead > * { overflow: hidden; }
+.ta-r { text-align: right; }
+
+.scroll { flex: 1; min-height: 0; overflow: auto; outline: none; }
+
+.row {
+  display: grid; align-items: center;
+  height: var(--row-height);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+  cursor: pointer; position: relative; outline: none;
+  transition: background var(--dur-fast) var(--ease);
+}
+.row > * { min-width: 0; }
+.row:hover { background: var(--row-hover); }
+
+/* Selected: its own surface PLUS a left accent bar, so selection survives
+   both hover and colour-blindness. */
+.row.is-selected { background: var(--row-selected); }
+.row.is-selected:hover { background: var(--row-selected-hover); }
+.row.is-selected::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: var(--selbar);
+  background: var(--accent-primary);
+}
+
+/* Status tint, kept weak so it never competes with selection. */
+.row.is-err { background: color-mix(in srgb, var(--status-danger-bg) 55%, transparent); }
+.row.is-warn { background: color-mix(in srgb, var(--status-warning-bg) 40%, transparent); }
+.row.is-err:hover, .row.is-warn:hover { background: var(--row-hover); }
+.row.is-err.is-selected, .row.is-warn.is-selected { background: var(--row-selected); }
+
+/* Row actions reveal on hover OR focus. */
+.row-action { opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
+.row:hover .row-action,
+.row:focus-within .row-action,
+.row-action:focus-visible { opacity: 1; }
+
+/* ─────────────────────────────────────────────────────────────
+   8. Animations.
+   ───────────────────────────────────────────────────────────── */
+
+/* New row arrival: flashes an accent bar and fades. Uses box-shadow +
+   background only — never height/width — so it cannot shift layout or
+   disturb virtualized scroll position. */
+@keyframes row-enter {
+  from {
+    box-shadow: inset var(--selbar) 0 0 var(--accent-primary);
+    background: var(--accent-muted);
+  }
+  to {
+    box-shadow: inset var(--selbar) 0 0 transparent;
+    background: transparent;
+  }
+}
+.row.is-new, .cline.is-new { animation: row-enter 900ms var(--ease); }
+
+/* Text shimmer for in-flight values. */
+@keyframes sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  display: inline-block;
+  background: linear-gradient(90deg,
+    var(--text-tertiary) 0%, var(--text-primary) 50%, var(--text-tertiary) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sweep 1.2s linear infinite;
+}
+
+/* Skeleton loading — replaces showing an empty state during a fetch. */
+.sk {
+  height: 8px; border-radius: 999px;
+  background: linear-gradient(90deg,
+    var(--border-subtle) 0%, var(--border-default) 50%, var(--border-subtle) 100%);
+  background-size: 200% 100%;
+  animation: sweep 1.4s linear infinite;
+}
+.row.is-skeleton { cursor: default; }
+.row.is-skeleton:hover { background: transparent; }
+
+/* "N new" pill that appears when tailing is suspended. */
+@keyframes rise {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.jump {
+  position: absolute; bottom: var(--space-3); left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  height: var(--control-md); padding: 0 var(--space-3);
+  background: var(--accent-primary); color: var(--accent-fg);
+  border: 0; border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-md); cursor: pointer;
+  z-index: 5;
+  animation: rise var(--dur-base) var(--ease);
+}
+
+/* Panel content entrance. */
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.panel-in { animation: panel-in var(--dur-base) var(--ease); }
+
+/* Continuous spin for active polling indicators. */
+@keyframes spin-cw { to { transform: rotate(360deg); } }
+.spin { animation: spin-cw 2s linear infinite; }
+
+/* Detail pane slides in from the row it came from. */
+@keyframes detail-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.detail-in { animation: detail-in var(--dur-base) var(--ease); }
+
+/* ─────────────────────────────────────────────────────────────
+   9. Console / log stream.
+   ───────────────────────────────────────────────────────────── */
+.clog {
+  flex: 1; min-height: 0; overflow: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  outline: none;
+}
+/* Gutter comes from the grid, so the message body can never drift out of
+   alignment with the timestamp column above it. */
+.cline {
+  display: grid;
+  grid-template-columns: 32px 92px minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: 4px var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--dur-fast) var(--ease);
+}
+.cline:hover { background: var(--row-hover); }
+.ctag {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em; text-align: center;
+  color: var(--text-tertiary);
+}
+.ctime { color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.cmsg {
+  white-space: pre-wrap; word-break: break-word;
+  user-select: text; color: var(--text-secondary);
+}
+
+/* Inline file paths: a real button, so Enter and Space both work. */
+.path {
+  font-family: inherit; font-size: inherit;
+  background: transparent; border: 0; padding: 0;
+  color: var(--text-link);
+  text-decoration: underline; text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.path:hover { text-decoration-style: solid; color: var(--accent-primary); }
+
+/* ─────────────────────────────────────────────────────────────
+   10. Split panes — 8px hit area over a 1px line.
+   ───────────────────────────────────────────────────────────── */
+.split {
+  flex: 0 0 1px; position: relative;
+  background: var(--border-subtle);
+  cursor: col-resize;
+  transition: background var(--dur-fast) var(--ease);
+}
+.split::after { content: ''; position: absolute; inset: 0 -4px; z-index: 20; }
+.split:hover, .split:focus-visible, .split.is-active { background: var(--accent-primary); }
+
+/* ─────────────────────────────────────────────────────────────
+   11. Reduced motion — was entirely absent before.
+   ───────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

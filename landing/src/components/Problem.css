@@ -1,0 +1,107 @@
+/* Problem.css — the "why this exists" section, set against Flipper and RN DevTools. */
+
+.problem {
+  position: relative;
+  z-index: 1;
+}
+
+.problem__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.problem__card {
+  position: relative;
+  padding: 30px 26px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-panel-alt));
+  overflow: hidden;
+  transition:
+    border-color 240ms var(--ease),
+    transform 320ms var(--ease-out);
+}
+
+.problem__card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-4px);
+}
+
+/* A red-tinted top edge marks these as problems, not features. */
+.problem__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(248, 113, 113, 0.5), transparent);
+}
+
+.problem__n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--red);
+  display: block;
+  margin-bottom: 14px;
+}
+
+.problem__title {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+
+.problem__body {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ─── The answer strip below the three cards ─── */
+
+.problem__answer {
+  margin-top: 28px;
+  padding: 30px 32px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(ellipse 70% 140% at 12% 0%, rgba(34, 197, 94, 0.1), transparent 70%),
+    linear-gradient(180deg, var(--bg-card), var(--bg-panel));
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.problem__answer-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  color: var(--accent);
+}
+
+.problem__answer h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.problem__answer p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 760px;
+}
+
+@media (max-width: 900px) {
+  .problem__grid { grid-template-columns: 1fr; }
+  .problem__answer { flex-direction: column; align-items: flex-start; gap: 18px; }
+}

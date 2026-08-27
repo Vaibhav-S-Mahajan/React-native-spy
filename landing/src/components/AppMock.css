@@ -1,0 +1,531 @@
+/* AppMock.css — a faithful, animated recreation of the debugger window.
+   Dimensions and colours match src/renderer/styles/theme.css: 40px header,
+   36px tab bar, 36px device strip, 28px rows, 24px column head. */
+
+.mock {
+  --mock-header-h: 40px;
+  --mock-tab-h: 36px;
+  --mock-device-h: 36px;
+  --mock-row-h: 28px;
+
+  position: relative;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--bg-app);
+  box-shadow: var(--shadow-xl), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  overflow: hidden;
+  font-size: 12px;
+  user-select: none;
+  transform-style: preserve-3d;
+  transition: transform 600ms var(--ease-out);
+}
+
+/* The whole window tilts slightly with the pointer, driven by Hero.jsx. */
+.mock--tilt {
+  will-change: transform;
+}
+
+/* ─── Title bar ─── */
+
+.mock__bar {
+  height: var(--mock-header-h);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mock__dots {
+  display: flex;
+  gap: 6px;
+  margin-right: 2px;
+}
+
+.mock__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.mock__dot:nth-child(1) { background: #ff5f57; }
+.mock__dot:nth-child(2) { background: #febc2e; }
+.mock__dot:nth-child(3) { background: #28c840; }
+
+.mock__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.mock__spacer { flex: 1; }
+
+/* Status pill — green with a pulsing dot, like the real header. */
+.mock__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  background: #10261b;
+  border: 1px solid #1e4530;
+  color: #4ade80;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.mock__live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: pulse 2s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+  70%  { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.mock__chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  background: var(--bg-app);
+}
+
+.mock__icons {
+  display: flex;
+  gap: 6px;
+  color: var(--text-tertiary);
+}
+
+/* ─── Panel tabs ─── */
+
+.mock__tabs {
+  height: var(--mock-tab-h);
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-panel-alt);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 6px;
+  /* Scrollable rather than clipped: on narrow screens the six tabs do not fit,
+     and clipping them would make the last panels unreachable. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.mock__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mock__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  transition: color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.mock__tab:hover { color: var(--text-secondary); }
+
+.mock__tab[aria-selected='true'] {
+  color: var(--text-primary);
+}
+
+/* Active indicator slides between tabs. */
+.mock__tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  animation: tab-in 260ms var(--ease-out);
+}
+
+@keyframes tab-in {
+  from { transform: scaleX(0.3); opacity: 0; }
+}
+
+.mock__count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  min-width: 20px;
+  text-align: center;
+}
+
+/* ─── Device strip ─── */
+
+.mock__devices {
+  height: var(--mock-device-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mock__device {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--bg-panel-alt);
+}
+
+.mock__device--on {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+}
+
+.mock__ddot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3a3a42;
+}
+
+.mock__device--on .mock__ddot {
+  background: var(--accent);
+  animation: pulse 2s var(--ease) infinite;
+}
+
+/* ─── Body ─── */
+
+.mock__body {
+  position: relative;
+  height: 340px;
+  background: var(--bg-app);
+  overflow: hidden;
+}
+
+.mock__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panels cross-fade when the tab changes. */
+.mock__panel--enter {
+  animation: panel-in 340ms var(--ease-out);
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+.mock__toolbar {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel-alt);
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.mock__search {
+  flex: 1;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+  color: var(--text-tertiary);
+  max-width: 220px;
+}
+
+.mock__chips { display: flex; gap: 5px; margin-left: auto; }
+
+.mock__lchip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.mock__lchip--on { color: var(--text-primary); border-color: var(--border-strong); background: var(--bg-card); }
+.mock__lchip--err { color: var(--red); border-color: #4a1f1f; background: #2a1414; }
+.mock__lchip--warn { color: var(--amber); border-color: #4a3417; background: #2a1d0e; }
+
+/* Column head + rows share one grid definition, so they cannot drift. */
+.mock__cols,
+.mock__row {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) 54px 66px 58px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+.mock__cols {
+  height: 24px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel-alt);
+}
+
+.mock__scroll {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.mock__row {
+  height: var(--mock-row-h);
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(34, 34, 38, 0.55);
+  transition: background 140ms var(--ease);
+}
+
+.mock__row:hover { background: var(--bg-card); }
+
+/* New rows slide in from the bottom and flash once. */
+.mock__row--fresh {
+  animation: row-in 420ms var(--ease-out);
+}
+
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(10px); background: var(--accent-soft); }
+}
+
+.mock__method { font-weight: 600; }
+.m-GET { color: var(--m-get); }
+.m-POST { color: var(--m-post); }
+.m-PUT, .m-PATCH { color: var(--m-put); }
+.m-DELETE { color: var(--m-delete); }
+
+.mock__url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.mock__status { font-weight: 600; }
+.s-2 { color: #4ade80; }
+.s-3 { color: var(--blue); }
+.s-4 { color: var(--amber); }
+.s-5 { color: var(--red); }
+.s-p { color: var(--text-tertiary); }
+
+.mock__num { color: var(--text-tertiary); text-align: right; }
+
+/* Pending ellipsis animates through one, two, three dots. */
+.mock__dots3::after {
+  content: '';
+  animation: dots 1.2s steps(1) infinite;
+}
+
+@keyframes dots {
+  0%   { content: '·'; }
+  33%  { content: '··'; }
+  66%  { content: '···'; }
+}
+
+/* ─── Console rows ─── */
+
+.mock__log {
+  display: grid;
+  grid-template-columns: 34px 62px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  border-bottom: 1px solid rgba(34, 34, 38, 0.55);
+}
+
+.mock__log--fresh { animation: row-in 420ms var(--ease-out); }
+
+.mock__lvl {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  border-radius: 3px;
+  padding: 2px 0;
+}
+
+.lvl-log { color: var(--text-secondary); background: var(--bg-card); }
+.lvl-info { color: var(--blue); background: #12202e; }
+.lvl-warn { color: var(--amber); background: #2a1d0e; }
+.lvl-error { color: var(--red); background: #2a1414; }
+.lvl-debug { color: var(--purple); background: rgba(167, 139, 250, 0.12); }
+
+.mock__msg {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock__caller {
+  font-size: 10px;
+  color: var(--accent);
+  border-bottom: 1px dashed rgba(34, 197, 94, 0.4);
+  cursor: pointer;
+}
+
+/* ─── WebSocket frames ─── */
+
+.mock__ws {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  height: 100%;
+  overflow: hidden;
+}
+
+.mock__conns {
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-panel-alt);
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.mock__conn {
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.mock__conn--on {
+  background: var(--bg-card);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.mock__conn b { display: block; font-weight: 600; }
+.mock__conn span { color: #4ade80; }
+
+.mock__frame {
+  display: grid;
+  grid-template-columns: 16px 62px minmax(0, 1fr) 48px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-bottom: 1px solid rgba(34, 34, 38, 0.55);
+}
+
+.mock__frame--fresh { animation: row-in 420ms var(--ease-out); }
+.mock__frame--send { background: rgba(34, 197, 94, 0.05); }
+.mock__frame--recv { background: rgba(96, 165, 250, 0.05); }
+
+.mock__dir--send { color: #4ade80; }
+.mock__dir--recv { color: var(--blue); }
+
+.mock__data {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock__t { color: var(--text-tertiary); }
+
+/* Reflection under the window grounds it on the page. */
+.mock-wrap {
+  position: relative;
+  perspective: 1600px;
+}
+
+.mock-wrap::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -34px;
+  height: 60px;
+  background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.16), transparent 72%);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .mock__body { height: 300px; }
+  .mock__chip, .mock__devices { display: none; }
+  .mock__ws { grid-template-columns: 1fr; }
+  .mock__conns { display: none; }
+
+  /* Drop the two least-informative network columns so the URL keeps room. */
+  .mock__cols,
+  .mock__row {
+    grid-template-columns: 54px minmax(0, 1fr) 46px;
+  }
+  .mock__cols span:nth-child(4),
+  .mock__cols span:nth-child(5),
+  .mock__row .mock__num {
+    display: none;
+  }
+
+  /* Caller badges are the first thing to go when space is tight. */
+  .mock__log { grid-template-columns: 32px minmax(0, 1fr); }
+  .mock__log .mock__t,
+  .mock__log .mock__caller { display: none; }
+
+  .mock__frame { grid-template-columns: 14px minmax(0, 1fr); }
+  .mock__frame .mock__t,
+  .mock__frame .mock__num { display: none; }
+}
