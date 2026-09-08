@@ -19,6 +19,7 @@ import {
   applySetup,
   removeSetup,
 } from './projectSetup'
+import { resolveRouteFile, clearRouteCache } from './routeResolver'
 import {
   initUpdater,
   getUpdaterState,
@@ -113,6 +114,18 @@ ipcMain.handle('rnspy:apply-setup', (_event, { dir, host, port } = {}) =>
 )
 
 ipcMain.handle('rnspy:remove-setup', (_event, { dir } = {}) => removeSetup({ dir }))
+
+// ── Navigation route → source file ───────────────────
+// The Navigation panel sends a route (and, when the SDK captured it, the
+// component that renders it); this searches the connected project for the file.
+ipcMain.handle('rnspy:resolve-route', (_event, { routeName, componentName, projectRoot } = {}) =>
+  resolveRouteFile({ routeName, componentName, projectRoot }),
+)
+
+ipcMain.handle('rnspy:clear-route-cache', (_event, { projectRoot } = {}) => {
+  clearRouteCache(projectRoot)
+  return { ok: true }
+})
 
 // ── Symbolicate stack trace via Metro bundler ────────
 // Parses raw Error().stack, extracts Metro host from bundler URLs,

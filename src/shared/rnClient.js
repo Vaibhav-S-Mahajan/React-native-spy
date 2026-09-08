@@ -402,6 +402,244 @@ if (__DEV__) {
       })
     }
 
+    // ── Navigation Bridge (React Navigation) ────────
+    // Two wraps, both read-only:
+    //   1. NavigationContainer gains an onStateChange (chaining the app's own)
+    //      so every route change is reported as it happens.
+    //   2. Each navigator's Navigator component has its children inspected to
+    //      learn which component renders which route name. That component name
+    //      is what lets the desktop app find the screen's source file.
+    // Expo Router builds its own container internally, so it is not covered.
+    var navStack = null      // focused path, root first
+    var navPrevRoute = null
+    var navScreens = {}      // routeName -> componentName
+    var navRegistryTimer = null
+    var navDiag = { resolved: false, error: null, notes: [] }
+
+    function serializeNavParams(params) {
+      if (!params || typeof params !== 'object') return null
+      try {
+        var json = JSON.stringify(params)
+        if (json === undefined) return null
+        if (json.length > 4000) return { __rnspyTruncated: true, bytes: json.length }
+        return JSON.parse(json)
+      } catch {
+        return { __rnspyUnserializable: true }
+      }
+    }
+
+    // Walk routes[index] down through nested navigator state, producing the
+    // focused path: [rootRoute, ..., focusedRoute].
+    function flattenNavState(state) {
+      var out = []
+      var node = state
+      var guard = 0
+      while (node && node.routes && node.routes.length && guard++ < 50) {
+        var idx = typeof node.index === 'number' ? node.index : node.routes.length - 1
+        var route = node.routes[idx]
+        if (!route) break
+        out.push({
+          name: route.name || 'unknown',
+          key: route.key || null,
+          params: serializeNavParams(route.params),
+          navigatorType: node.type || null,
+        })
+        node = route.state
+      }
+      return out
+    }
+
+    function sendNavigationState(reqId) {
+      var stack = navStack || []
+      var focused = stack.length ? stack[stack.length - 1] : null
+      send({
+        kind: 'navigation',
+        reqId: reqId,
+        available: navDiag.resolved,
+        stack: stack,
+        routeName: focused ? focused.name : null,
+        prevRouteName: navPrevRoute,
+        screens: navScreens,
+        diag: { resolved: navDiag.resolved, error: navDiag.error, notes: navDiag.notes.slice(-6) },
+      })
+    }
+
+    function handleNavState(state, force) {
+      try {
+        var next = flattenNavState(state)
+        var focused = next.length ? next[next.length - 1] : null
+        var prev = navStack && navStack.length ? navStack[navStack.length - 1] : null
+        // Report only real changes: a different route, or the same route with
+        // different params. Redundant onStateChange calls are common.
+        var changed = force || !prev || !focused ||
+          prev.key !== focused.key || prev.name !== focused.name ||
+          JSON.stringify(prev.params) !== JSON.stringify(focused.params)
+        navPrevRoute = prev ? prev.name : null
+        navStack = next
+        if (changed) sendNavigationState(null)
+      } catch (e) {
+        navDiag.notes.push('State change handler failed: ' + ((e && e.message) || 'error'))
+      }
+    }
+
+    // Screens are recorded during render, so the send is deferred out of the
+    // render phase and coalesced across every navigator that mounts at once.
+    function scheduleNavRegistry() {
+      if (navRegistryTimer) return
+      navRegistryTimer = setTimeout(function () {
+        navRegistryTimer = null
+        send({ kind: 'navigation-registry', screens: navScreens })
+      }, 250)
+    }
+
+    // Interception happens at the ELEMENT FACTORY, not on the module exports.
+    //
+    // Reassigning NavMod.NavigationContainer cannot work in practice:
+    //   - React Navigation 7 ships ESM-only, so its exports are immutable
+    //     bindings rather than writable CommonJS properties.
+    //   - Apps import it by name ("import { NavigationContainer } from ..."),
+    //     and Metro inlines named imports, so the JSX call site holds a direct
+    //     reference that a later export assignment never reaches.
+    // Every JSX element, whatever the import style, goes through createElement
+    // (classic transform) or jsx/jsxs (automatic transform), so patching those
+    // catches the container and every Screen no matter how they were imported.
+    var navContainerNode = null
+
+    function injectContainerProps(props) {
+      var userOnStateChange = props.onStateChange
+      var userOnReady = props.onReady
+      var userRef = props.ref
+
+      var nextProps = Object.assign({}, props)
+
+      // Our own handle on the container: onStateChange does not fire for the
+      // initial route, so the first state has to be read on ready.
+      nextProps.ref = function (node) {
+        navContainerNode = node
+        if (typeof userRef === 'function') userRef(node)
+        else if (userRef && typeof userRef === 'object') userRef.current = node
+      }
+
+      nextProps.onStateChange = function (state) {
+        handleNavState(state, false)
+        if (typeof userOnStateChange === 'function') {
+          try { userOnStateChange(state) } catch {}
+        }
+      }
+
+      nextProps.onReady = function () {
+        try {
+          if (navContainerNode && navContainerNode.getRootState) {
+            handleNavState(navContainerNode.getRootState(), true)
+          }
+        } catch (e) {
+          navDiag.notes.push('Reading initial state failed: ' + ((e && e.message) || 'error'))
+        }
+        if (typeof userOnReady === 'function') {
+          try { userOnReady() } catch {}
+        }
+      }
+
+      return nextProps
+    }
+
+    function isNavContainerType(type) {
+      if (!type) return false
+      if (navContainerType && type === navContainerType) return true
+      // Identity can differ when the tree holds more than one copy of the
+      // package, so fall back to the component's own name.
+      var n = type.displayName || type.name
+      return n === 'NavigationContainer'
+    }
+
+    // A Screen element is the one place a route name meets the component that
+    // renders it. Recording it here (rather than walking a Navigator's
+    // children) works for every navigator type without wrapping any factory.
+    function maybeRecordScreen(props) {
+      var name = props.name
+      if (!name || typeof name !== 'string') return
+      var comp = props.component
+      if (!comp) return
+      var t = typeof comp
+      if (t !== 'function' && t !== 'object') return
+      var compName = comp.displayName || comp.name || null
+      if (navScreens[name] === (compName || name)) return
+      navScreens[name] = compName || name
+      scheduleNavRegistry()
+    }
+
+    // createElement runs for every element in the tree, so the fast path here
+    // must stay two cheap property reads.
+    function patchElementFactory(host, key) {
+      var orig = host && host[key]
+      if (typeof orig !== 'function' || orig.__rnspyNavPatched) return false
+      var patched = function (type, props) {
+        if (props) {
+          try {
+            if (isNavContainerType(type)) {
+              var args = Array.prototype.slice.call(arguments)
+              args[1] = injectContainerProps(props)
+              return orig.apply(this, args)
+            }
+            maybeRecordScreen(props)
+          } catch {}
+        }
+        return orig.apply(this, arguments)
+      }
+      patched.__rnspyNavPatched = true
+      // Copy statics (jsx runtimes and React both carry extra properties).
+      try {
+        for (var k in orig) {
+          if (Object.prototype.hasOwnProperty.call(orig, k)) patched[k] = orig[k]
+        }
+      } catch {}
+      try {
+        host[key] = patched
+        return host[key] === patched
+      } catch (e) {
+        navDiag.notes.push('Patching ' + key + ' failed: ' + ((e && e.message) || 'read-only'))
+        return false
+      }
+    }
+
+    var navContainerType = null
+    try {
+      // Resolving the package is optional: the name-based fallback in
+      // isNavContainerType still identifies the container without it.
+      try {
+        var NavMod = require('@react-navigation/native')
+        navContainerType = (NavMod && NavMod.NavigationContainer)
+          || (NavMod && NavMod.default && NavMod.default.NavigationContainer)
+          || null
+      } catch (e) {
+        navDiag.notes.push('@react-navigation/native require failed: ' + ((e && e.message) || 'not installed'))
+      }
+
+      var patchedAny = false
+      try { patchedAny = patchElementFactory(require('react'), 'createElement') || patchedAny } catch {}
+      // Automatic JSX transform (RN 0.71+ default). Both runtimes are patched
+      // because one app can contain modules built with either transform.
+      try {
+        var JsxRuntime = require('react/jsx-runtime')
+        patchedAny = patchElementFactory(JsxRuntime, 'jsx') || patchedAny
+        patchedAny = patchElementFactory(JsxRuntime, 'jsxs') || patchedAny
+      } catch {}
+      try {
+        var JsxDevRuntime = require('react/jsx-dev-runtime')
+        patchedAny = patchElementFactory(JsxDevRuntime, 'jsxDEV') || patchedAny
+      } catch {}
+
+      if (patchedAny) {
+        navDiag.resolved = true
+      } else {
+        navDiag.error = 'could not patch any JSX element factory'
+        navDiag.notes.push(navDiag.error)
+      }
+    } catch (e) {
+      navDiag.error = (e && e.message) || 'navigation bridge failed'
+      navDiag.notes.push('Navigation bridge failed: ' + navDiag.error)
+    }
+
     function readMmkvValue(inst, k) {
       try {
         var s = inst.getString(k)
@@ -581,6 +819,10 @@ if (__DEV__) {
                 // named store the app created before this snippet ran.
                 openMmkvInstanceById(msg.instanceId)
                 sendSnapshot(msg.reqId)
+                return
+              }
+              if (msg.command === 'navigation-read') {
+                sendNavigationState(msg.reqId)
                 return
               }
               if (msg.command === 'watermelon-read') {

@@ -14,6 +14,7 @@ import DeviceTabs from './DeviceTabs'
 import LogsTab from './LogsTab'
 import NetworkTab from './NetworkTab'
 import StorageTab from './StorageTab'
+import NavigationTab from './NavigationTab'
 import WatermelonTab from './WatermelonTab'
 import WebSocketTab from './WebSocketTab'
 import RnspySettingsModal from './RnspySettingsModal'
@@ -33,6 +34,7 @@ const TABS = [
   { key: 'console', label: 'Console' },
   { key: 'storage', label: 'Storage' },
   { key: 'watermelon', label: 'WatermelonDB' },
+  { key: 'navigation', label: 'Navigation' },
   { key: 'logs', label: 'Logs' },
 ]
 
@@ -46,6 +48,7 @@ export default function RnspyDevtoolsPage() {
     reloadDevice,
     readStorage, setStorageValue, removeStorageKey, openStorageInstance,
     readWatermelon, readWatermelonPage,
+    readNavigation, openRouteInEditor,
     serverLogs, clearServerLogs, resetAll,
   } = useRnspyDevtools()
   const [tab, setTab] = useState('network')
@@ -55,6 +58,7 @@ export default function RnspyDevtoolsPage() {
   const [projectSetupOpen, setProjectSetupOpen] = useState(false)
   const [storageAutoRefresh, setStorageAutoRefresh] = useState(true)
   const [watermelonAutoRefresh, setWatermelonAutoRefresh] = useState(true)
+  const [navigationAutoRefresh, setNavigationAutoRefresh] = useState(true)
   const [reloadingKeys, setReloadingKeys] = useState(() => new Set())
   const restartClientsRef = useRef(new Map())
   const restartTimersRef = useRef(new Map())
@@ -65,6 +69,7 @@ export default function RnspyDevtoolsPage() {
   const networkRef = useRef(null)
   const websocketRef = useRef(null)
   const consoleRef = useRef(null)
+  const navigationRef = useRef(null)
   const logsRef = useRef(null)
 
   useEffect(() => {
@@ -126,6 +131,7 @@ export default function RnspyDevtoolsPage() {
       .reduce((sum, b) => sum + (b.entries?.length || 0), 0),
     watermelon: (activeDevice?.watermelon?.tables || [])
       .reduce((sum, t) => sum + (t.rowCount || 0), 0),
+    navigation: activeDevice?.navigation?.history?.length || 0,
     logs: serverLogs.length,
   }
 
@@ -157,7 +163,10 @@ export default function RnspyDevtoolsPage() {
     const mod = (e) => (isMac ? e.metaKey : e.ctrlKey)
 
     const focusSearch = () => {
-      const ref = { network: networkRef, websocket: websocketRef, console: consoleRef, logs: logsRef }[tab]
+      const ref = {
+        network: networkRef, websocket: websocketRef, console: consoleRef,
+        navigation: navigationRef, logs: logsRef,
+      }[tab]
       ref?.current?.focusSearch?.()
     }
 
@@ -176,8 +185,8 @@ export default function RnspyDevtoolsPage() {
 
       if (!mod(e)) return
 
-      // Tab switching: Cmd/Ctrl+1..6.
-      if (e.key >= '1' && e.key <= '6') {
+      // Tab switching: Cmd/Ctrl+1..7.
+      if (e.key >= '1' && e.key <= '7') {
         const idx = parseInt(e.key, 10) - 1
         if (idx < TABS.length) {
           e.preventDefault()
@@ -253,6 +262,18 @@ export default function RnspyDevtoolsPage() {
     const timer = setInterval(() => readWatermelon(key), 3000)
     return () => clearInterval(timer)
   }, [tab, watermelonAutoRefresh, activeDevice?.online, activeDevice?.key, readWatermelon])
+
+  // ── Navigation resync ──
+  // The SDK pushes a fresh stack on every route change, so this is only a slow
+  // safety net for a state change that arrived while the socket was down.
+  useEffect(() => {
+    if (tab !== 'navigation' || !navigationAutoRefresh) return undefined
+    if (!activeDevice?.online) return undefined
+    const key = activeDevice.key
+    readNavigation(key)
+    const timer = setInterval(() => readNavigation(key), 5000)
+    return () => clearInterval(timer)
+  }, [tab, navigationAutoRefresh, activeDevice?.online, activeDevice?.key, readNavigation])
 
   return (
     <div style={{
@@ -455,6 +476,19 @@ export default function RnspyDevtoolsPage() {
             onOpenInstance={(id) => openStorageInstance(activeKey, id)}
             autoRefresh={storageAutoRefresh}
             onToggleAutoRefresh={() => setStorageAutoRefresh((v) => !v)}
+          />
+        ) : tab === 'navigation' ? (
+          <NavigationTab
+            ref={navigationRef}
+            navigation={activeDevice.navigation}
+            online={activeDevice?.online}
+            onRefresh={() => readNavigation(activeKey)}
+            onOpenRoute={openRouteInEditor}
+            onClear={() => clearActiveTab(activeKey)}
+            onReload={() => handleReload(activeKey)}
+            canReload={activeDevice?.online && !reloadingKeys.has(activeKey)}
+            autoRefresh={navigationAutoRefresh}
+            onToggleAutoRefresh={() => setNavigationAutoRefresh((v) => !v)}
           />
         ) : tab === 'watermelon' ? (
           <WatermelonTab

@@ -6,6 +6,7 @@ const MAX_CONSOLE_LOGS = 2000
 const MAX_NETWORK_REQUESTS = 2000
 const MAX_SERVER_LOGS = 500
 const MAX_WS_FRAMES = 2000
+const MAX_NAV_HISTORY = 500
 const DEFAULT_PORT = 8097
 const PORT_STORAGE_KEY = 'rnspyDevtoolsPort'
 const RECORDS_STORAGE_KEY = 'rnspyDevtoolsRecords'
@@ -117,6 +118,7 @@ export function useRnspyDevtools() {
       consoleLogs: d.consoleLogs.slice(),
       storage: d.storage,
       watermelon: d.watermelon,
+      navigation: d.navigation,
     }))
     setDevices(arr)
     schedulePersist()
@@ -128,7 +130,8 @@ export function useRnspyDevtools() {
     if (!dev) {
       dev = {
         key, name: payload.clientName || null, platform: payload.clientPlatform || null,
-        networkMap: new Map(), wsMap: new Map(), consoleLogs: [], storage: null, watermelon: null,
+        networkMap: new Map(), wsMap: new Map(), consoleLogs: [],
+        storage: null, watermelon: null, navigation: null,
       }
       devicesRef.current.set(key, dev)
     } else {
@@ -266,6 +269,65 @@ export function useRnspyDevtools() {
             diag: payload.diag || null,
           }
         }
+        rebuildDevices()
+        return
+      }
+
+      if (payload.kind === 'navigation') {
+        const dev = ensureDevice(payload)
+        const stack = Array.isArray(payload.stack) ? payload.stack : []
+        const focused = stack.length ? stack[stack.length - 1] : null
+        const prev = dev.navigation || null
+        const history = prev && Array.isArray(prev.history) ? prev.history : []
+
+        // Append only real route changes. A poll-triggered read of an unchanged
+        // route would otherwise fill the timeline with duplicates.
+        const last = history.length ? history[history.length - 1] : null
+        const isNewRoute = focused && (
+          !last || last.key !== focused.key || last.name !== focused.name ||
+          JSON.stringify(last.params) !== JSON.stringify(focused.params)
+        )
+        if (isNewRoute) {
+          history.push({
+            id: `nav-${payload.seq}`,
+            name: focused.name,
+            key: focused.key,
+            params: focused.params,
+            from: payload.prevRouteName || null,
+            path: stack.map((r) => r.name),
+            timestamp: payload.timestamp || payload.receivedAt || Date.now(),
+          })
+          if (history.length > MAX_NAV_HISTORY) {
+            history.splice(0, history.length - MAX_NAV_HISTORY)
+          }
+        }
+
+        dev.navigation = {
+          stack,
+          current: focused,
+          prevRouteName: payload.prevRouteName || null,
+          // Screens arrive on their own event too; never let an omitted field
+          // wipe a registry we already hold.
+          screens: payload.screens || (prev && prev.screens) || {},
+          history,
+          available: !!payload.available,
+          updatedAt: Date.now(),
+          diag: payload.diag || (prev && prev.diag) || null,
+        }
+        rebuildDevices()
+        return
+      }
+
+      if (payload.kind === 'navigation-registry') {
+        const dev = ensureDevice(payload)
+        const prev = dev.navigation
+        const screens = { ...((prev && prev.screens) || {}), ...(payload.screens || {}) }
+        dev.navigation = prev
+          ? { ...prev, screens }
+          : {
+              stack: [], current: null, prevRouteName: null, screens,
+              history: [], available: true, updatedAt: Date.now(), diag: null,
+            }
         rebuildDevices()
         return
       }
@@ -517,6 +579,39 @@ export function useRnspyDevtools() {
     })
   }, [rnspy])
 
+  // The device answers with a `navigation` event, handled above.
+  const readNavigation = useCallback((key) => {
+    if (!rnspy?.sendCommand) return Promise.resolve({ ok: false, reason: 'not-available' })
+    return rnspy.sendCommand({ deviceKey: key, command: 'navigation-read', payload: { reqId: Date.now() } })
+  }, [rnspy])
+
+  // Route name → source file, then open it. Resolution runs in the main process
+  // against the connected project folder; `componentName` (when the SDK captured
+  // it) makes the match far more reliable than the route name alone.
+  const openRouteInEditor = useCallback(({ routeName, componentName }) => {
+    if (!rnspy?.resolveRoute) return Promise.resolve({ ok: false, reason: 'not-available' })
+    if (!projectRoot) return Promise.resolve({ ok: false, reason: 'no-project-root' })
+    // `stage` disambiguates the two failures that share a reason: the resolver
+    // reports 'not-found' for "no file matches this route", and the editor
+    // handler reports 'not-found' for "VS Code could not be launched".
+    return rnspy.resolveRoute({ routeName, componentName, projectRoot }).then((res) => {
+      if (!res?.ok || !res.file) {
+        return { ok: false, stage: 'resolve', ...(res || { reason: 'not-found' }) }
+      }
+      return rnspy.openInEditor({
+        file: res.file, line: res.line || 1, column: 1, projectRoot,
+      }).then((open) => ({
+        ...open,
+        stage: 'open',
+        file: res.file,
+        line: res.line,
+        tier: res.tier,
+        ambiguous: res.ambiguous,
+        candidates: res.candidates,
+      }))
+    })
+  }, [rnspy, projectRoot])
+
   const readWatermelon = useCallback((key) => {
     if (!rnspy?.sendCommand) return Promise.resolve({ ok: false, reason: 'not-available' })
     return rnspy.sendCommand({ deviceKey: key, command: 'watermelon-read', payload: { reqId: Date.now() } })
@@ -558,6 +653,11 @@ export function useRnspyDevtools() {
     if (category === 'network') dev.networkMap.clear()
     else if (category === 'websocket') dev.wsMap.clear()
     else if (category === 'console') dev.consoleLogs = []
+    else if (category === 'navigation') {
+      // Clear the timeline only — the current stack is live device state, not
+      // a record we captured, so wiping it would just show a false empty.
+      if (dev.navigation) dev.navigation = { ...dev.navigation, history: [] }
+    }
     else return
     rebuildDevices()
   }, [rebuildDevices])
@@ -635,6 +735,7 @@ export function useRnspyDevtools() {
     disconnectDevice, disconnectClientById, reloadDevice,
     readStorage, setStorageValue, removeStorageKey, openStorageInstance,
     readWatermelon, readWatermelonPage,
+    readNavigation, openRouteInEditor,
     closeDevice, clearDevice, clearDeviceCategory, clear,
     serverLogs, clearServerLogs, resetAll,
   }

@@ -175,13 +175,13 @@ export async function findEntryFile(dir, pkg) {
 
 // Directories that never contain the app's own source. Skipped while scanning so
 // a large project doesn't pay for walking build output or native folders.
-const SKIP_DIRS = new Set([
+export const SKIP_DIRS = new Set([
   'node_modules', '.git', '.expo', '.expo-shared', 'ios', 'android',
   'build', 'dist', 'coverage', '.next', '.yarn', 'vendor', '__tests__',
   '.husky', '.vscode', '.idea', 'Pods',
 ])
 
-const SOURCE_EXT = /\.(?:js|jsx|ts|tsx|mjs|cjs)$/
+export const SOURCE_EXT = /\.(?:js|jsx|ts|tsx|mjs|cjs)$/
 
 // Bounds on the scan so a pathological tree can't stall the picker.
 const SCAN_MAX_FILES = 1500
@@ -204,11 +204,14 @@ const WM_MENTIONS_RE = /new\s+Database\s*\(/
  * Recursively lists the project's own source files, breadth-first so shallow
  * (more likely) locations are considered before deep ones.
  */
-async function listSourceFiles(dir) {
+export async function listSourceFiles(dir, {
+  maxFiles = SCAN_MAX_FILES,
+  maxDepth = SCAN_MAX_DEPTH,
+} = {}) {
   const found = []
   let queue = [{ path: dir, depth: 0 }]
 
-  while (queue.length && found.length < SCAN_MAX_FILES) {
+  while (queue.length && found.length < maxFiles) {
     const next = []
     for (const { path, depth } of queue) {
       let entries
@@ -218,11 +221,11 @@ async function listSourceFiles(dir) {
         continue
       }
       for (const entry of entries) {
-        if (found.length >= SCAN_MAX_FILES) break
+        if (found.length >= maxFiles) break
         const child = join(path, entry.name)
         if (entry.isDirectory()) {
           if (SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue
-          if (depth + 1 <= SCAN_MAX_DEPTH) next.push({ path: child, depth: depth + 1 })
+          if (depth + 1 <= maxDepth) next.push({ path: child, depth: depth + 1 })
         } else if (entry.isFile() && SOURCE_EXT.test(entry.name)) {
           found.push(child)
         }

@@ -20,7 +20,8 @@ On load (inside `if (__DEV__)`), it:
    - `fetch` — emits `network-start` then `network` (with status, headers, body, size, duration). Clones the response so your app is unaffected.
    - `XMLHttpRequest` — same fields; de-duplicates `fetch`/`XHR` double-capture via a 5s pending map.
    - `WebSocket` — emits `ws-open`, `ws-frame` (send/recv), `ws-close`, `ws-error`. The debugger's own control socket is excluded.
-6. **Handles remote commands** — if the desktop sends `{ kind: 'command', command: 'reload' }`, it triggers an RN fast-refresh/reload via `DevSettings`.
+6. **Wraps React Navigation (if installed)** — `NavigationContainer` gains an `onStateChange` that reports the focused route path on every change, chaining any handler you passed so your own stays intact. Each navigator's `Screen` list is read to learn which component renders which route, which is what lets the desktop find a screen's source file. Purely observational: navigation is never driven from the desktop.
+7. **Handles remote commands** — if the desktop sends `{ kind: 'command', command: 'reload' }`, it triggers an RN fast-refresh/reload via `DevSettings`.
 
 ## Event protocol (frames sent to the desktop)
 
@@ -34,6 +35,8 @@ On load (inside `if (__DEV__)`), it:
 | `ws-frame` | WS message | `wsId`, `dir` (`send`/`recv`), `data`, `size` |
 | `ws-close` | WS close | `wsId`, `code`, `reason` |
 | `ws-error` | WS error | `wsId` |
+| `navigation` | route change / `navigation-read` | `stack` (focused path, root first), `routeName`, `prevRouteName`, `screens`, `available`, `diag` |
+| `navigation-registry` | navigator mount | `screens` (`{ routeName: componentName }`) |
 
 Each frame is also stamped server-side with `seq`, `deviceId`, `clientId`, `clientName`, `clientPlatform`, and `receivedAt`.
 
@@ -81,6 +84,7 @@ connectRnspy('192.168.1.20', 8097)
 - Patches are global; they don't capture traffic from libraries that cache the original `fetch`/`WebSocket` reference **before** the snippet runs. Always import the snippet first.
 - Request/response bodies are captured as text; very large bodies may be truncated by the desktop buffer caps (see [Features](./features.md)).
 - The snippet is **dev-only** by design — never ship it to production (keep the `__DEV__` guard).
+- Navigation capture needs `@react-navigation/native` and the app's own `NavigationContainer`. **Expo Router is not supported** — it builds its container internally, so there is nothing to wrap. Route params over 4 KB are reported by size instead of being sent.
 
 ## Removing the debugger
 

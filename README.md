@@ -40,7 +40,7 @@ feature.
 physical device is a normal afternoon. Every event here is tagged by device and
 bucketed into its own tab.
 
-## The six panels
+## The seven panels
 
 | Panel | What it gives you |
 | ----- | ----------------- |
@@ -49,6 +49,7 @@ bucketed into its own tab.
 | **Console** | Five log levels with per-level counts, and a caller badge on every row (`App.tsx:42`) that opens the exact line in VS Code. |
 | **Storage** | AsyncStorage and MMKV, browsable and editable from the desktop. Edit values inline, remove keys, no rebuild. |
 | **WatermelonDB** | Inspect local database tables without a SQLite client. Row counts, offset pagination, read-only by design. |
+| **Navigation** | The live React Navigation stack, a timeline of every route change with its params, and click-to-open any screen's source file in VS Code. |
 | **Logs** | Server-side activity for when the connection itself is the bug — client connect/disconnect, server start/stop, errors. |
 
 ### Also worth knowing
@@ -141,7 +142,7 @@ no telemetry.
 ## Documentation
 
 - [Getting Started](./docs/getting-started.md) — install, run, connect your app, build a release
-- [Features Walkthrough](./docs/features.md) — all six panels, device tabs, multi-device
+- [Features Walkthrough](./docs/features.md) — all seven panels, device tabs, multi-device
 - [Client SDK](./docs/client-sdk.md) — how the snippet works and how to embed it
 - [Configuration](./docs/configuration.md) — port, hidden rules, project root, caps
 - [Architecture](./docs/architecture.md) — main process, preload bridge, renderer, protocol

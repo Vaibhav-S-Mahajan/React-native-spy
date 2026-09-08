@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('electron', {
     planSetup: (opts) => ipcRenderer.invoke('rnspy:plan-setup', opts),
     applySetup: (opts) => ipcRenderer.invoke('rnspy:apply-setup', opts),
     removeSetup: (opts) => ipcRenderer.invoke('rnspy:remove-setup', opts),
+    resolveRoute: (opts) => ipcRenderer.invoke('rnspy:resolve-route', opts),
+    clearRouteCache: (opts) => ipcRenderer.invoke('rnspy:clear-route-cache', opts),
     onEvent: (callback) => {
       const handler = (_event, payload) => callback(payload)
       ipcRenderer.on('rnspy:event', handler)
