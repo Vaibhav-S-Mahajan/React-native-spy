@@ -3,10 +3,12 @@ import ReactDOM from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
-// Load order matters: tokens + reset, then palettes, then the class system.
-import './styles/theme.css'
-import './styles/themes.css'
-import './styles/ui.css'
+// One stylesheet entry point. tailwind.css declares the cascade layers, pulls in
+// Tailwind, then imports theme.css / themes.css / ui.css into a `legacy` layer
+// that sits BELOW Tailwind's utilities. Importing those three here instead would
+// leave them unlayered, and unlayered rules outrank every layer — which is what
+// made utility classes silently lose to theme.css's element resets.
+import './styles/tailwind.css'
 import { applyStoredTheme } from './hooks/useTheme'
 
 // Set data-theme on <html> BEFORE React renders, so the first paint already

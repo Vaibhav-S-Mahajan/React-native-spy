@@ -10,7 +10,7 @@
 import { forwardRef } from 'react'
 import { AlertTriangle, ShieldCheck } from 'lucide-react'
 
-import { BTN_GHOST } from '../../styles/shared'
+import cn from '../ui/cn'
 
 const IssuesButton = forwardRef(function IssuesButton(
   { errorCount = 0, warnCount = 0, total = 0, onClick },
@@ -21,10 +21,10 @@ const IssuesButton = forwardRef(function IssuesButton(
   const clean = !hasErrors && !hasWarnings
 
   const tone = hasErrors
-    ? { fg: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)', bd: 'var(--status-danger-border)' }
+    ? 'border-danger-edge bg-danger text-danger-fg'
     : hasWarnings
-      ? { fg: 'var(--status-warning-text)', bg: 'var(--status-warning-bg)', bd: 'var(--status-warning-border)' }
-      : { fg: 'var(--text-tertiary)', bg: 'transparent', bd: 'transparent' }
+      ? 'border-warn-edge bg-warn text-warn-fg'
+      : 'border-transparent bg-transparent text-faint hover:bg-card hover:text-muted'
 
   // Count occurrences for the badge, but describe distinct problems in the
   // label — 200 repeats of one broken endpoint is one thing to fix.
@@ -38,27 +38,22 @@ const IssuesButton = forwardRef(function IssuesButton(
   return (
     <button
       ref={ref}
+      type="button"
       onClick={onClick}
       title={label}
       aria-label={`${label}. Open issues.`}
       aria-haspopup="dialog"
-      style={{
-        ...BTN_GHOST,
-        gap: 'var(--space-1)',
-        color: tone.fg,
-        background: tone.bg,
-        border: `1px solid ${tone.bd}`,
-      }}
+      className={cn(
+        'inline-flex h-control-sm shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2',
+        'font-ui text-2xs font-medium leading-tight transition-colors duration-150 focus-ring',
+        tone,
+      )}
     >
       {clean
         ? <ShieldCheck size={12} aria-hidden="true" />
         : <AlertTriangle size={12} aria-hidden="true" />}
-      <span style={{
-        fontFamily: 'var(--font-mono)',
-        fontVariantNumeric: 'tabular-nums',
-        // Reserved width so the toolbar doesn't shift as counts change.
-        minWidth: '2ch', textAlign: 'left',
-      }}>
+      {/* min-w reserves space so the toolbar doesn't shift as counts change. */}
+      <span className="min-w-[2ch] text-left font-mono tabular-nums">
         {clean ? '0' : occurrences > 999 ? '999+' : occurrences}
       </span>
     </button>

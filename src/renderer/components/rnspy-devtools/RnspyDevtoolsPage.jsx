@@ -1,14 +1,14 @@
 // src/renderer/components/rnspy-devtools/RnspyDevtoolsPage.jsx
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Check, Copy, FolderOpen, Settings, Smartphone, Wifi, Wand2,
-} from 'lucide-react'
+import { Smartphone } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-import {
-  BTN_PRIMARY, BTN_GHOST, BADGE_SUCCESS, BADGE_WARNING, BADGE_DANGER,
-} from '../../styles/shared'
+import AppShell from '../layout/AppShell'
+import HeaderBar from '../layout/HeaderBar'
+import PanelTabs from '../layout/PanelTabs'
+import ConnectPanel from '../panels/ConnectPanel'
+import { EmptyState } from '../ui'
 import ConsoleTab from './ConsoleTab'
 import DeviceTabs from './DeviceTabs'
 import LogsTab from './LogsTab'
@@ -19,14 +19,9 @@ import WatermelonTab from './WatermelonTab'
 import WebSocketTab from './WebSocketTab'
 import RnspySettingsModal from './RnspySettingsModal'
 import ProjectSetupModal from './ProjectSetupModal'
-import UpdateButton from './UpdateButton'
-import ThemeMenu from './ThemeMenu'
-import IssuesButton from './IssuesButton'
 import IssuesModal from './IssuesModal'
 import { useIssues } from '../../hooks/useIssues'
-import { buildRnClient } from '../../../shared/rnClient'
 import { useRnspyDevtools } from '../../hooks/useRnspyDevtools'
-import Logo from './Logo'
 
 const TABS = [
   { key: 'network', label: 'Network' },
@@ -93,18 +88,12 @@ export default function RnspyDevtoolsPage() {
 
   if (!available) {
     return (
-      <div style={{
-        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexDirection: 'column', gap: 'var(--space-3)', background: 'var(--bg-app)',
-        height: '100%', color: 'var(--text-tertiary)', fontFamily: 'var(--font-ui)',
-      }}>
-        <Smartphone size={24} style={{ opacity: 0.3 }} />
-        <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-          Desktop only
-        </div>
-        <div style={{ fontSize: 'var(--text-sm)', maxWidth: 340, textAlign: 'center', lineHeight: 'var(--line-height-normal)' }}>
-          React Native Spy requires the Electron desktop app.
-        </div>
+      <div className="flex h-full flex-col bg-app">
+        <EmptyState
+          icon={Smartphone}
+          title="Desktop only"
+          description="React Native Spy requires the Electron desktop app."
+        />
       </div>
     )
   }
@@ -113,11 +102,7 @@ export default function RnspyDevtoolsPage() {
   const running = status.running
   const address = status.address || 'localhost'
 
-  const statusBadge = connected
-    ? { ...BADGE_SUCCESS, style: BADGE_SUCCESS }
-    : running
-    ? { ...BADGE_WARNING, style: BADGE_WARNING }
-    : { ...BADGE_DANGER, style: BADGE_DANGER }
+  const statusTone = connected ? 'success' : running ? 'warn' : 'danger'
 
   const statusLabel = connected
     ? `${status.clientCount} connected`
@@ -276,164 +261,43 @@ export default function RnspyDevtoolsPage() {
   }, [tab, navigationAutoRefresh, activeDevice?.online, activeDevice?.key, readNavigation])
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      height: '100%', width: '100%',
-      background: 'var(--bg-app)',
-    }}>
-      {/* ─── Header Bar ─── */}
-      <div className="titlebar-drag" style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-        padding: '0 var(--space-4)',
-        height: 'var(--header-height)',
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-sidebar)',
-        flexShrink: 0,
-      }}>
-        {/* macOS traffic light spacer */}
-        <div style={{ width: 62, flexShrink: 0 }} />
+    <AppShell
+      chrome={
+        <>
+          <HeaderBar
+            statusTone={statusTone}
+            statusLabel={statusLabel}
+            address={address}
+            port={port}
+            onCopyConnection={() => {
+              navigator.clipboard.writeText(`ws://${address}:${port}`).then(() =>
+                toast.success('Copied connection URL'))
+            }}
+            issues={issues}
+            issuesBtnRef={issuesBtnRef}
+            onOpenIssues={() => setIssuesOpen(true)}
+            onOpenProject={() => setProjectSetupOpen(true)}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
 
-        {/* Logo / Title */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        }}>
-          <Logo size={18} />
-          <span style={{
-            fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--text-primary)', fontFamily: 'var(--font-ui)',
-          }}>
-            React Native Spy
-          </span>
-        </div>
+          <PanelTabs
+            tabs={TABS}
+            active={tab}
+            counts={tabCounts}
+            onSelect={setTab}
+          />
 
-        {/* Divider */}
-        <div style={{ width: 1, height: 16, background: 'var(--border-subtle)' }} />
-
-        {/* Status badge */}
-        <div style={{
-          ...statusBadge.style,
-          display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)',
-        }}>
-          <span style={{
-            width: 5, height: 5, borderRadius: '50%',
-            background: 'currentColor',
-          }} />
-          {statusLabel}
-        </div>
-
-        {/* Connection string — click to copy */}
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(`ws://${address}:${port}`).then(() =>
-              toast.success('Copied connection URL'))
-          }}
-          title="Click to copy connection URL"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)',
-            height: 24, padding: '0 var(--space-2)',
-            border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)',
-            background: 'var(--bg-card)', cursor: 'pointer',
-            fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <Wifi size={11} color="var(--text-tertiary)" />
-          ws://{address}:{port}
-        </button>
-
-        <div style={{ flex: 1 }} />
-
-        {/* Update available — renders nothing when there is no update */}
-        <UpdateButton />
-
-        {/* Errors + warnings from every source, in one modal */}
-        <IssuesButton
-          ref={issuesBtnRef}
-          errorCount={issues.errorCount}
-          warnCount={issues.warnCount}
-          total={issues.total}
-          onClick={() => setIssuesOpen(true)}
-        />
-
-        {/* Theme picker — switch palette on mood */}
-        <ThemeMenu />
-
-        {/* Connect a project — folder picker + automatic setup */}
-        <button
-          onClick={() => setProjectSetupOpen(true)}
-          style={{ ...BTN_GHOST, gap: 'var(--space-1)' }}
-          title="Connect a React Native project folder"
-        >
-          <FolderOpen size={12} />
-          <span>Project</span>
-        </button>
-
-        {/* Settings */}
-        <button
-          onClick={() => setSettingsOpen(true)}
-          style={{ ...BTN_GHOST, gap: 'var(--space-1)' }}
-          title="Settings"
-        >
-          <Settings size={12} />
-          <span>Settings</span>
-        </button>
-      </div>
-
-      {/* ─── Tab Bar ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'stretch',
-        height: 'var(--tab-height)', flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-panel-alt)',
-      }}>
-        {TABS.map((t) => {
-          const active = tab === t.key
-          const count = tabCounts[t.key]
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--space-1)',
-                padding: '0 var(--space-4)',
-                height: '100%',
-                border: 'none',
-                borderBottom: active ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                background: 'transparent',
-                color: active ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: active ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
-                fontFamily: 'var(--font-ui)',
-                cursor: 'pointer',
-                transition: 'color 120ms ease',
-              }}
-            >
-              {t.label}
-              {count > 0 && (
-                <span style={{
-                  fontSize: 10, fontWeight: 'var(--font-weight-medium)',
-                  fontFamily: 'var(--font-mono)',
-                  color: active ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                  marginLeft: 2,
-                }}>
-                  {count > 999 ? '1k+' : count}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* ─── Device Tabs ─── */}
-      <DeviceTabs
-        devices={devices}
-        activeKey={activeKey}
-        onSelect={setActiveKey}
-        onClose={closeDevice}
-      />
-
-      {/* ─── Content Area ─── */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <DeviceTabs
+            devices={devices}
+            activeKey={activeKey}
+            onSelect={setActiveKey}
+            onClose={closeDevice}
+          />
+        </>
+      }
+    >
+      {/* ─── Active Panel ─── */}
+      <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'logs' ? (
           <LogsTab
             ref={logsRef}
@@ -443,7 +307,7 @@ export default function RnspyDevtoolsPage() {
             canReload={activeDevice?.online && !reloadingKeys.has(activeKey)}
           />
         ) : !activeDevice ? (
-          <ConnectSnippet
+          <ConnectPanel
             host={address}
             port={port}
             onAutoSetup={() => setProjectSetupOpen(true)}
@@ -558,148 +422,6 @@ export default function RnspyDevtoolsPage() {
           onClose={() => setProjectSetupOpen(false)}
         />
       )}
-    </div>
-  )
-}
-
-/* ─── Connect Empty State ─── */
-function ConnectSnippet({ host, port, onAutoSetup }) {
-  const [copied, setCopied] = useState(false)
-  const snippet = useMemo(() => buildRnClient({ host, port }), [host, port])
-
-  const copy = () => {
-    navigator.clipboard.writeText(snippet).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    })
-  }
-
-  return (
-    <div style={{
-      flex: 1, overflow: 'auto', background: 'var(--bg-panel)',
-      display: 'flex', justifyContent: 'center',
-      padding: 'var(--space-8) var(--space-6)',
-    }}>
-      <div className="animate-slide-up" style={{ maxWidth: 620, width: '100%' }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-          marginBottom: 'var(--space-4)',
-        }}>
-          <Logo size={22} />
-          <div>
-            <h2 style={{
-              margin: 0, fontSize: 'var(--text-md)',
-              fontWeight: 'var(--font-weight-semibold)',
-              color: 'var(--text-primary)', fontFamily: 'var(--font-ui)',
-              lineHeight: 'var(--line-height-tight)',
-            }}>
-              Connect your app
-            </h2>
-            <p style={{
-              margin: 0, fontSize: 'var(--text-sm)',
-              color: 'var(--text-tertiary)', fontFamily: 'var(--font-ui)',
-              lineHeight: 'var(--line-height-tight)',
-            }}>
-              Paste near the top of your React Native entry file
-            </p>
-          </div>
-          <div style={{ flex: 1 }} />
-          {/* Automatic path — picks the project folder and wires everything up */}
-          <button
-            onClick={onAutoSetup}
-            style={{ ...BTN_PRIMARY, height: 30 }}
-            title="Pick your project folder and set up the connection automatically"
-          >
-            <Wand2 size={12} />
-            Set it up for me
-          </button>
-        </div>
-
-        {/* Steps */}
-        <div style={{
-          display: 'flex', gap: 'var(--space-2)',
-          marginBottom: 'var(--space-4)',
-        }}>
-          {['Copy snippet', 'Paste in index.js', 'Reload app'].map((text, i) => (
-            <div key={i} style={{
-              flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-              padding: 'var(--space-2) var(--space-3)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
-              fontSize: 'var(--text-xs)', color: 'var(--text-secondary)',
-              fontFamily: 'var(--font-ui)', lineHeight: 'var(--line-height-tight)',
-            }}>
-              <span style={{
-                width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--status-info-bg)', color: 'var(--status-info-text)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 'var(--font-weight-semibold)',
-                fontFamily: 'var(--font-mono)',
-              }}>
-                {i + 1}
-              </span>
-              {text}
-            </div>
-          ))}
-        </div>
-
-        {/* Code block */}
-        <div style={{
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: 'var(--space-2) var(--space-3)',
-            borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-card)',
-          }}>
-            <span style={{
-              fontSize: 'var(--text-xs)', fontWeight: 'var(--font-weight-medium)',
-              color: 'var(--text-tertiary)', fontFamily: 'var(--font-ui)',
-            }}>
-              rnClient.js
-            </span>
-            <button onClick={copy} style={{
-              ...BTN_GHOST,
-              color: copied ? 'var(--status-success-text)' : 'var(--text-tertiary)',
-            }}>
-              {copied ? <Check size={11} /> : <Copy size={11} />}
-              {copied ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-          <pre style={{
-            margin: 0, padding: 'var(--space-3)', maxHeight: 360, overflow: 'auto',
-            fontSize: 'var(--text-xs)', lineHeight: 'var(--line-height-normal)',
-            fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)',
-            background: 'var(--bg-code-block)', userSelect: 'text',
-          }}>
-            {snippet}
-          </pre>
-        </div>
-
-        {/* Connection hint */}
-        <div style={{
-          marginTop: 'var(--space-3)',
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)',
-          fontFamily: 'var(--font-ui)', lineHeight: 'var(--line-height-tight)',
-        }}>
-          <Wifi size={11} color="var(--text-tertiary)" />
-          <span>
-            Same network required · connects to{' '}
-            <code style={{
-              fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)',
-              background: 'var(--bg-code-block)', padding: '1px 4px',
-              borderRadius: 3, fontSize: 'var(--text-xs)',
-            }}>
-              ws://{host}:{port}
-            </code>
-          </span>
-        </div>
-      </div>
-    </div>
+    </AppShell>
   )
 }

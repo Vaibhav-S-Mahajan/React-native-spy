@@ -1,19 +1,26 @@
 // src/renderer/components/rnspy-devtools/LogsTab.jsx
+// Server-side activity: client connect/disconnect, server start/stop, errors.
+// Virtualized, sticky-bottom, capped at 500 entries by the hook that feeds it.
 
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { Search, Server } from 'lucide-react'
+import { Server } from 'lucide-react'
+
 import { useVirtualRows } from '../../hooks/useVirtualRows'
-import { EMPTY_STATE, INPUT_BASE } from '../../styles/shared'
+import { EmptyState, SearchInput, Toolbar, ToolbarDivider } from '../ui'
+import cn from '../ui/cn'
 import LevelChip from './LevelChip'
 import ToolbarActions from './ToolbarActions'
 
 const LEVELS = ['info', 'warn', 'error']
+
+// Must stay a fixed number: useVirtualRows computes offsets arithmetically, so a
+// CSS value would break the math. Kept equal to --row-height (28px).
 const ROW_HEIGHT = 28
 
 const LEVEL_CFG = {
-  info:  { color: 'var(--status-info-text)', tag: 'INF', bg: 'transparent', label: 'Info', dot: 'var(--status-info-text)' },
-  warn:  { color: 'var(--status-warning-text)', tag: 'WRN', bg: 'var(--status-warning-bg)', label: 'Warn', dot: 'var(--status-warning-text)' },
-  error: { color: 'var(--status-danger-text)', tag: 'ERR', bg: 'var(--status-danger-bg)', label: 'Error', dot: 'var(--status-danger-text)' },
+  info: { tag: 'INF', label: 'Info', color: 'var(--status-info-text)', dot: 'var(--status-info-text)', text: 'text-info-fg', bg: '' },
+  warn: { tag: 'WRN', label: 'Warn', color: 'var(--status-warning-text)', dot: 'var(--status-warning-text)', text: 'text-warn-fg', bg: 'bg-warn' },
+  error: { tag: 'ERR', label: 'Error', color: 'var(--status-danger-text)', dot: 'var(--status-danger-text)', text: 'text-danger-fg', bg: 'bg-danger' },
 }
 
 function formatTime(ts) {
@@ -54,14 +61,8 @@ export default forwardRef(function LogsTab({ logs, onClear, onReload, canReload 
   })
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--bg-panel)' }}>
-      {/* ─── Toolbar ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: '0 var(--space-3)', height: 38, flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-panel-alt)',
-      }}>
+    <div className="pane bg-panel">
+      <Toolbar>
         {LEVELS.map((level) => {
           const active = activeLevels.has(level)
           const cfg = LEVEL_CFG[level]
@@ -78,66 +79,51 @@ export default forwardRef(function LogsTab({ logs, onClear, onReload, canReload 
           )
         })}
 
-        <div style={{ width: 1, height: 14, background: 'var(--border-subtle)' }} />
+        <ToolbarDivider />
 
-        <Search size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-        <input
+        <SearchInput
           ref={searchRef}
-          value={search} onChange={(e) => setSearch(e.target.value)}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter…"
-          style={{
-            ...INPUT_BASE, flex: 1, height: 30, fontSize: 'var(--text-sm)',
-            border: 'none', background: 'transparent', padding: 0,
-          }}
+          aria-label="Filter server logs"
+          count={filtered.length}
         />
-        <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-          {filtered.length}
-        </span>
-        <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
-      </div>
 
-      {/* ─── Virtualized Log Stream ─── */}
-      <div ref={scrollRef} onScroll={onScroll}
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+        <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
+      </Toolbar>
+
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="min-h-0 flex-1 overflow-auto font-mono text-xs"
+      >
         {filtered.length === 0 ? (
-          <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-            <Server size={20} style={{ opacity: 0.3 }} />
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-              No server logs
-            </div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-              Server activity will appear here
-            </div>
-          </div>
+          <EmptyState
+            icon={Server}
+            title={search ? 'No matching logs' : 'No server logs'}
+            description={search ? 'Try a different filter.' : 'Server activity will appear here.'}
+          />
         ) : (
           <>
             {topSpacer > 0 && <div style={{ height: topSpacer }} />}
             {filtered.slice(startIdx, endIdx).map((log, i) => {
               const cfg = LEVEL_CFG[log.level] || LEVEL_CFG.info
               return (
-                <div key={startIdx + i} style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                  padding: '0 var(--space-3)', height: ROW_HEIGHT,
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: cfg.bg,
-                }}>
-                  <span style={{
-                    width: 26, flexShrink: 0, textAlign: 'center',
-                    fontSize: 9, fontWeight: 'var(--font-weight-semibold)',
-                    color: cfg.color,
-                  }}>
+                <div
+                  key={startIdx + i}
+                  className={cn(
+                    'flex h-row items-center gap-2 border-b border-subtle px-3',
+                    cfg.bg,
+                  )}
+                >
+                  <span className={cn('w-[26px] shrink-0 text-center text-[9px] font-semibold', cfg.text)}>
                     {cfg.tag}
                   </span>
-                  <span style={{
-                    width: 80, flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10,
-                  }}>
+                  <span className="w-20 shrink-0 text-[10px] text-faint tabular-nums">
                     {formatTime(log.timestamp)}
                   </span>
-                  <span style={{
-                    flex: 1, minWidth: 0, color: 'var(--text-secondary)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    userSelect: 'text',
-                  }} title={log.message}>
+                  <span className="cell-truncate flex-1 select-text text-muted" title={log.message}>
                     {log.message}
                   </span>
                 </div>

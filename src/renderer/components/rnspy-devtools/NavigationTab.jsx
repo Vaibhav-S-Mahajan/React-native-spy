@@ -3,11 +3,12 @@
 // VS Code. Read-only: the desktop app never drives the app's navigator.
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { ChevronRight, Compass, RefreshCw, Search } from 'lucide-react'
+import { ChevronRight, Compass, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import { useVirtualRows } from '../../hooks/useVirtualRows'
-import { EMPTY_STATE, INPUT_BASE, SECTION_LABEL } from '../../styles/shared'
+import { EmptyState, SearchInput, SectionLabel, Toolbar, ToolbarDivider } from '../ui'
+import cn from '../ui/cn'
 import LevelChip from './LevelChip'
 import ToolbarActions from './ToolbarActions'
 
@@ -157,29 +158,18 @@ export default forwardRef(function NavigationTab({
   const notDetected = stack.length === 0 && (available === false || diag?.resolved === false)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--bg-panel)' }}>
-      {/* ─── Toolbar ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: '0 var(--space-3)', height: 38, flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-panel-alt)',
-      }}>
-        <Search size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-        <input
+    <div className="pane bg-panel">
+      <Toolbar>
+        <SearchInput
           ref={searchRef}
-          value={search} onChange={(e) => { setSearch(e.target.value); setSelectedIdx(null) }}
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setSelectedIdx(null) }}
           placeholder="Filter route history…"
-          style={{
-            ...INPUT_BASE, flex: 1, height: 30, fontSize: 'var(--text-sm)',
-            border: 'none', background: 'transparent', padding: 0,
-          }}
+          aria-label="Filter route history"
+          count={filtered.length}
         />
-        <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-          {filtered.length}
-        </span>
 
-        <div style={{ width: 1, height: 14, background: 'var(--border-subtle)' }} />
+        <ToolbarDivider />
 
         <LevelChip
           active={autoRefresh}
@@ -190,87 +180,76 @@ export default forwardRef(function NavigationTab({
           title={autoRefresh ? 'Resync every 5s (route changes always arrive live)' : 'Resync off'}
         />
         <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
-      </div>
+      </Toolbar>
 
-      {/* ─── Not-detected banner ─── */}
       {notDetected && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: 2,
-          padding: '6px var(--space-3)', flexShrink: 0,
-          borderBottom: '1px solid var(--status-warning-border)',
-          background: 'var(--status-warning-bg)',
-          fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-          color: 'var(--status-warning-text)',
-        }}>
+        <div
+          role="status"
+          className="flex shrink-0 flex-col gap-0.5 border-b border-warn-edge bg-warn px-3 py-1.5 font-mono text-xs text-warn-fg"
+        >
           <span>React Navigation was not detected in this app.</span>
           {diag?.error && <span>{diag.error}</span>}
         </div>
       )}
 
-      {/* ─── Current stack breadcrumb ─── */}
       {stack.length > 0 && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: 'var(--space-1)',
-          padding: 'var(--space-2) var(--space-3)', flexShrink: 0,
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-panel-alt)',
-        }}>
-          <span style={SECTION_LABEL}>Current screen</span>
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            {stack.map((route, i) => {
-              const isLast = i === stack.length - 1
-              const component = screens[route.name]
-              return (
-                <div key={route.key || `${route.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {i > 0 && <ChevronRight size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />}
-                  <button
-                    onClick={() => openRoute(route.name)}
-                    title={
-                      `Open ${component || route.name} in VS Code` +
-                      (component && component !== route.name ? ` (rendered by ${component})` : '')
-                    }
-                    style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      height: 22, padding: '0 var(--space-2)',
-                      border: `1px solid ${isLast ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-                      borderRadius: 'var(--radius-sm)',
-                      background: isLast ? 'var(--status-info-bg)' : 'var(--bg-card)',
-                      color: isLast ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontSize: 'var(--text-xs)',
-                      fontWeight: isLast ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
-                      fontFamily: 'var(--font-mono)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {route.name}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+        <div className="flex shrink-0 flex-col gap-1 border-b border-subtle bg-panel-alt px-3 py-2">
+          <SectionLabel>Current screen</SectionLabel>
+          {/* nav + ol: this is a breadcrumb trail, and the nesting order is
+              meaningful, so it should be announced as an ordered list. */}
+          <nav aria-label="Navigation stack">
+            <ol className="flex flex-wrap items-center gap-0.5">
+              {stack.map((route, i) => {
+                const isLast = i === stack.length - 1
+                const component = screens[route.name]
+                return (
+                  <li key={route.key || `${route.name}-${i}`} className="flex items-center gap-0.5">
+                    {i > 0 && (
+                      <ChevronRight size={12} className="shrink-0 text-faint" aria-hidden="true" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => openRoute(route.name)}
+                      aria-current={isLast ? 'page' : undefined}
+                      title={
+                        `Open ${component || route.name} in VS Code` +
+                        (component && component !== route.name ? ` (rendered by ${component})` : '')
+                      }
+                      className={cn(
+                        'inline-flex h-[22px] items-center rounded-sm border px-2',
+                        'font-mono text-xs transition-colors duration-150 focus-ring',
+                        isLast
+                          ? 'border-accent bg-info font-semibold text-fg'
+                          : 'border-subtle bg-card font-medium text-muted hover:text-fg',
+                      )}
+                    >
+                      {route.name}
+                    </button>
+                  </li>
+                )
+              })}
+            </ol>
+          </nav>
         </div>
       )}
 
-      {/* ─── Route-change timeline ─── */}
-      <div ref={scrollRef} onScroll={onScroll}
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="min-h-0 flex-1 overflow-auto font-mono text-xs"
+      >
         {filtered.length === 0 ? (
-          <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-            <Compass size={20} style={{ opacity: 0.3 }} />
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-              {search ? 'No matching routes' : notDetected ? 'React Navigation not detected' : 'No route changes yet'}
-            </div>
-            <div style={{
-              fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)',
-              maxWidth: 420, textAlign: 'center', lineHeight: 'var(--line-height-normal)',
-            }}>
-              {notDetected
+          <EmptyState
+            icon={Compass}
+            title={search ? 'No matching routes' : notDetected ? 'React Navigation not detected' : 'No route changes yet'}
+            description={
+              notDetected
                 ? 'This panel reads @react-navigation/native. Expo Router builds its own navigation container and is not supported.'
                 : search
                   ? 'Try a different filter.'
-                  : 'Navigate in your app and every route change will appear here.'}
-            </div>
-          </div>
+                  : 'Navigate in your app and every route change will appear here.'
+            }
+          />
         ) : (
           <>
             {topSpacer > 0 && <div style={{ height: topSpacer }} />}
@@ -284,44 +263,29 @@ export default forwardRef(function NavigationTab({
                   onClick={() => setSelectedIdx(isSelected ? null : idx)}
                   onDoubleClick={() => openRoute(entry.name)}
                   title="Click to inspect params, double-click to open in VS Code"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                    padding: '0 var(--space-3)', height: ROW_HEIGHT,
-                    borderBottom: '1px solid var(--border-subtle)',
-                    background: isSelected ? 'var(--status-info-bg)' : 'transparent',
-                    cursor: 'pointer',
-                  }}
+                  className={cn(
+                    'flex h-row cursor-pointer items-center gap-2 border-b border-subtle px-3',
+                    'transition-colors duration-150',
+                    isSelected ? 'bg-row-selected' : 'hover:bg-row-hover',
+                  )}
                 >
-                  <span style={{ width: 80, flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10 }}>
+                  <span className="w-20 shrink-0 text-[10px] text-faint tabular-nums">
                     {formatTime(entry.timestamp)}
                   </span>
                   {entry.from && (
-                    <span style={{
-                      flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10,
-                      maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
+                    <span className="cell-truncate max-w-[140px] shrink-0 text-[10px] text-faint">
                       {entry.from} →
                     </span>
                   )}
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); openRoute(entry.name) }}
                     title={`Open ${entry.name} in VS Code`}
-                    style={{
-                      flexShrink: 0, border: 'none', background: 'transparent', padding: 0,
-                      color: 'var(--text-link)', fontSize: 'var(--text-xs)',
-                      fontWeight: 'var(--font-weight-semibold)', fontFamily: 'var(--font-mono)',
-                      cursor: 'pointer', textDecoration: 'none',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
-                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                    className="shrink-0 bg-transparent p-0 font-mono text-xs font-semibold text-link hover:underline focus-ring"
                   >
                     {entry.name}
                   </button>
-                  <span style={{
-                    flex: 1, minWidth: 0, color: 'var(--text-tertiary)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    userSelect: 'text',
-                  }} title={preview}>
+                  <span className="cell-truncate flex-1 select-text text-faint" title={preview}>
                     {preview}
                   </span>
                 </div>
@@ -332,22 +296,10 @@ export default forwardRef(function NavigationTab({
         )}
       </div>
 
-      {/* ─── Params of the selected (or focused) route ─── */}
       {detail && detail.params && (
-        <div style={{
-          flexShrink: 0, maxHeight: 200, overflow: 'auto',
-          borderTop: '1px solid var(--border-subtle)',
-          background: 'var(--bg-panel-alt)',
-          padding: 'var(--space-2) var(--space-3)',
-        }}>
-          <div style={{ ...SECTION_LABEL, marginBottom: 'var(--space-1)' }}>
-            {detail.name} params
-          </div>
-          <pre style={{
-            margin: 0, fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-            color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            userSelect: 'text',
-          }}>
+        <div className="max-h-[200px] shrink-0 overflow-auto border-t border-subtle bg-panel-alt px-3 py-2">
+          <SectionLabel className="mb-1 block">{detail.name} params</SectionLabel>
+          <pre className="m-0 select-text whitespace-pre-wrap break-words font-mono text-xs text-muted">
             {prettyParams(detail.params)}
           </pre>
         </div>

@@ -3,6 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import cn from '../ui/cn'
+
 export default function CursorMenu({ anchor, onClose, children, width }) {
   const menuRef = useRef(null)
   const [pos, setPos] = useState(null)
@@ -60,20 +62,14 @@ export default function CursorMenu({ anchor, onClose, children, width }) {
   return createPortal(
     <div
       ref={menuRef}
-      className="animate-fade-in"
+      role="menu"
+      className="animate-fade-in fixed z-[1300] max-h-[calc(100vh-24px)] overflow-y-auto rounded-lg border border-default bg-card p-1 shadow-lg"
+      /* Position is computed from the cursor and flipped to stay on screen, so
+         it is inherently dynamic. minWidth is caller-supplied. */
       style={{
-        position: 'fixed',
         top: pos?.top ?? anchor.y,
         left: pos?.left ?? anchor.x,
-        zIndex: 1300,
         minWidth: width || 240,
-        maxHeight: 'calc(100vh - 24px)',
-        overflowY: 'auto',
-        padding: 'var(--space-1)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border-default)',
-        background: 'var(--bg-card)',
-        boxShadow: 'var(--shadow-lg)',
       }}
     >
       {children}
@@ -84,46 +80,38 @@ export default function CursorMenu({ anchor, onClose, children, width }) {
 
 export function MenuLabel({ children }) {
   return (
-    <div style={{
-      padding: '5px var(--space-2) 3px',
-      fontSize: 10,
-      fontWeight: 'var(--font-weight-semibold)',
-      fontFamily: 'var(--font-ui)',
-      color: 'var(--text-tertiary)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
-      lineHeight: 'var(--line-height-tight)',
-      userSelect: 'none',
-    }}>
+    <div className="select-none px-2 pb-[3px] pt-[5px] font-ui text-[10px] font-semibold uppercase tracking-caps text-faint leading-tight">
       {children}
     </div>
   )
 }
 
 export function MenuItem({ icon, label, onClick, danger, disabled, hint }) {
-  const [hover, setHover] = useState(false)
   return (
     <button
-      type="button" disabled={disabled} onClick={onClick}
-      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        width: '100%', padding: '5px var(--space-2)',
-        border: 'none', borderRadius: 'var(--radius-sm)',
-        background: hover && !disabled ? 'var(--bg-card-hover)' : 'transparent',
-        color: disabled ? 'var(--text-tertiary)' : danger ? 'var(--status-danger-text)' : 'var(--text-secondary)',
-        fontSize: 'var(--text-xs)', fontWeight: 'var(--font-weight-medium)',
-        fontFamily: 'var(--font-ui)', cursor: disabled ? 'default' : 'pointer',
-        textAlign: 'left', lineHeight: 'var(--line-height-tight)',
-      }}
+      type="button"
+      role="menuitem"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-2 rounded-sm border-none bg-transparent px-2 py-[5px]',
+        'text-left font-ui text-xs font-medium leading-tight',
+        'transition-colors duration-100 focus-ring',
+        disabled
+          ? 'cursor-default text-faint'
+          : cn(
+              'cursor-pointer hover:bg-card-hover',
+              danger ? 'text-danger-fg' : 'text-muted hover:text-fg',
+            ),
+      )}
     >
-      {icon && <span style={{ display: 'flex', flexShrink: 0, width: 14, justifyContent: 'center' }}>{icon}</span>}
-      <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{label}</span>
-      {hint && <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{hint}</span>}
+      {icon && <span className="flex w-3.5 shrink-0 justify-center">{icon}</span>}
+      <span className="flex-1 whitespace-nowrap">{label}</span>
+      {hint && <span className="font-mono text-[10px] text-faint">{hint}</span>}
     </button>
   )
 }
 
 export function MenuDivider() {
-  return <div style={{ height: 1, background: 'var(--border-subtle)', margin: '3px 2px' }} />
+  return <div role="separator" className="mx-0.5 my-[3px] h-px bg-subtle" />
 }

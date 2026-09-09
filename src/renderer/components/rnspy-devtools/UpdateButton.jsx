@@ -14,23 +14,14 @@ import { Download, RefreshCw, AlertTriangle, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import { useUpdater } from '../../hooks/useUpdater'
+import cn from '../ui/cn'
 
-const PILL = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 'var(--space-1)',
-  height: 24,
-  padding: '0 var(--space-2)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid transparent',
-  fontSize: 'var(--text-xs)',
-  fontWeight: 'var(--font-weight-medium)',
-  fontFamily: 'var(--font-ui)',
-  lineHeight: 'var(--line-height-tight)',
-  whiteSpace: 'nowrap',
-  cursor: 'pointer',
-  transition: 'all 120ms ease',
-}
+// Shared pill geometry. Not the Button primitive: this is a status affordance
+// whose colour IS its meaning, and one state (downloading) is not a button at all.
+const PILL =
+  'inline-flex h-control-sm shrink-0 items-center gap-1 whitespace-nowrap rounded-md ' +
+  'border px-2 font-ui text-2xs font-medium leading-tight ' +
+  'transition-colors duration-150 focus-ring disabled:opacity-60'
 
 export default function UpdateButton() {
   const {
@@ -49,28 +40,25 @@ export default function UpdateButton() {
   if (status === 'downloading') {
     return (
       <div
+        role="progressbar"
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Downloading update${version ? ` ${version}` : ''}`}
         title={`Downloading update${version ? ` ${version}` : ''} — ${percent}%`}
-        style={{
-          ...PILL,
-          cursor: 'default',
-          background: 'var(--status-info-bg)',
-          color: 'var(--status-info-text)',
-          borderColor: 'var(--status-info-border)',
-        }}
+        className={cn(PILL, 'cursor-default border-info-edge bg-info text-info-fg')}
       >
-        <Download size={11} />
-        <span>{percent}%</span>
+        <Download size={11} aria-hidden="true" />
+        <span className="tabular-nums">{percent}%</span>
         <span
           aria-hidden="true"
-          style={{
-            width: 44, height: 3, borderRadius: 2, overflow: 'hidden',
-            background: 'var(--status-info-border)',
-          }}
+          className="h-[3px] w-11 overflow-hidden rounded-sm bg-info-edge"
         >
-          <span style={{
-            display: 'block', height: '100%', width: `${percent}%`,
-            background: 'currentColor', transition: 'width 200ms ease',
-          }} />
+          {/* Width is the live value — inherently dynamic, so it stays inline. */}
+          <span
+            className="block h-full bg-current transition-[width] duration-200"
+            style={{ width: `${percent}%` }}
+          />
         </span>
       </div>
     )
@@ -91,16 +79,11 @@ export default function UpdateButton() {
           }
         }}
         disabled={busy}
+        type="button"
         title={`Version ${version || 'update'} downloaded — restart to apply`}
-        style={{
-          ...PILL,
-          background: 'var(--status-success-bg)',
-          color: 'var(--status-success-text)',
-          borderColor: 'var(--status-success-border)',
-          opacity: busy ? 0.6 : 1,
-        }}
+        className={cn(PILL, 'border-success-edge bg-success text-success-fg')}
       >
-        <RefreshCw size={11} />
+        <RefreshCw size={11} aria-hidden="true" />
         <span>Restart to update</span>
       </button>
     )
@@ -111,15 +94,11 @@ export default function UpdateButton() {
     return (
       <button
         onClick={() => check()}
+        type="button"
         title={error ? `${error} — click to retry` : 'Update check failed — click to retry'}
-        style={{
-          ...PILL,
-          background: 'var(--status-danger-bg)',
-          color: 'var(--status-danger-text)',
-          borderColor: 'var(--status-danger-border)',
-        }}
+        className={cn(PILL, 'border-danger-edge bg-danger text-danger-fg')}
       >
-        <AlertTriangle size={11} />
+        <AlertTriangle size={11} aria-hidden="true" />
         <span>Update failed</span>
       </button>
     )
@@ -143,21 +122,15 @@ export default function UpdateButton() {
         }
       }}
       disabled={busy}
+      type="button"
       title={canInstallInApp
         ? `Version ${version} is available — click to download`
         : `Version ${version} is available — opens the download page`}
-      style={{
-        ...PILL,
-        background: 'var(--accent-primary)',
-        color: 'var(--accent-fg)',
-        borderColor: 'transparent',
-        fontWeight: 'var(--font-weight-semibold)',
-        opacity: busy ? 0.6 : 1,
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-primary-hover)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--accent-primary)' }}
+      className={cn(PILL, 'border-transparent bg-accent font-semibold text-accent-fg hover:bg-accent-hover')}
     >
-      {canInstallInApp ? <Download size={11} /> : <ExternalLink size={11} />}
+      {canInstallInApp
+        ? <Download size={11} aria-hidden="true" />
+        : <ExternalLink size={11} aria-hidden="true" />}
       <span>Update{version ? ` to ${version}` : ''}</span>
     </button>
   )

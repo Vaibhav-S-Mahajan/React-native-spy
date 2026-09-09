@@ -5,20 +5,20 @@
 //
 // Aggregation lives in hooks/useIssues.js. This is presentation only.
 //
-// Accessibility: this is the first modal in the app built properly —
-// role="dialog" + aria-modal, focus trap, focus restore on close, Escape to
-// dismiss, and position:fixed via a portal. The other four modals still need
-// the same treatment (tracked in design/UI-REDESIGN.md §8).
+// Accessibility: role="dialog" + aria-modal, focus trap, focus restore on
+// close, Escape to dismiss, and position:fixed via a portal. All of that now
+// comes from the shared Modal primitive (components/ui/Modal.jsx), which was
+// extracted from the implementation this file used to carry alone.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle, Check, Copy, Database, FileCode2, Globe,
   HardDrive, PlugZap, Server, ShieldCheck, Terminal, X, XCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-import { BTN_GHOST, BTN_SECONDARY, SECTION_LABEL } from '../../styles/shared'
+import { Button, IconButton, Modal, SectionLabel } from '../ui'
+import cn from '../ui/cn'
 import { SOURCES } from '../../hooks/useIssues'
 import { copyText } from '../../utils/curl'
 
@@ -56,44 +56,10 @@ export default function IssuesModal({
   const [source, setSource] = useState('all')
   const [expanded, setExpanded] = useState(() => new Set())
 
-  const cardRef = useRef(null)
+  // Focus management (trap, restore, Escape) now lives in the Modal primitive
+  // via useFocusTrap — extracted from the implementation that used to sit here,
+  // so the other modals get the same behaviour instead of reimplementing it.
   const closeRef = useRef(null)
-  // Remember what had focus so it can be restored — otherwise closing the
-  // dialog drops focus to <body> and keyboard users lose their place.
-  const restoreRef = useRef(null)
-
-  useEffect(() => {
-    // Prefer the explicit trigger; fall back to whatever had focus.
-    restoreRef.current = returnFocusRef?.current || document.activeElement
-    closeRef.current?.focus()
-    return () => {
-      const el = restoreRef.current
-      if (el && typeof el.focus === 'function') el.focus()
-    }
-  }, [returnFocusRef])
-
-  // Escape to dismiss + focus trap.
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') { e.preventDefault(); onClose?.(); return }
-      if (e.key !== 'Tab') return
-      const card = cardRef.current
-      if (!card) return
-      const focusable = card.querySelectorAll(
-        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      )
-      if (!focusable.length) return
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault(); last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault(); first.focus()
-      }
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
 
   const filtered = useMemo(() => issues.filter((i) => {
     if (severity !== 'all' && i.severity !== severity) return false
@@ -118,283 +84,199 @@ export default function IssuesModal({
     })
   }
 
-  return createPortal(
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1250,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--overlay)',
-      }}
+  return (
+    <Modal
+      size="xl"
+      onClose={onClose}
+      returnFocusRef={returnFocusRef}
+      initialFocusRef={closeRef}
+      labelledBy="issues-title"
+      className="max-h-[82vh] bg-panel"
     >
-      <div
-        ref={cardRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="issues-title"
-        className="animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 680, maxWidth: '92vw', maxHeight: '82vh',
-          display: 'flex', flexDirection: 'column',
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-lg)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          padding: 'var(--space-3) var(--space-4)',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-sidebar)', flexShrink: 0,
-        }}>
-          <AlertTriangle
-            size={14}
-            style={{ color: errorCount > 0 ? 'var(--status-danger-text)' : 'var(--status-warning-text)' }}
-          />
-          <span id="issues-title" style={{
-            fontSize: 'var(--text-base)', fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--text-primary)', fontFamily: 'var(--font-ui)',
-          }}>
-            Issues
-          </span>
-          <span style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-            fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-          }}>
-            <span style={{ color: 'var(--status-danger-text)' }}>{errorCount} errors</span>
-            <span style={{ color: 'var(--text-tertiary)' }}>·</span>
-            <span style={{ color: 'var(--status-warning-text)' }}>{warnCount} warnings</span>
-          </span>
-          <div style={{ flex: 1 }} />
-          <button onClick={copyAll} style={{ ...BTN_GHOST }} disabled={!filtered.length} title="Copy visible issues">
-            <Copy size={11} />
-            Copy all
-          </button>
-          <button
-            ref={closeRef}
-            onClick={onClose}
-            aria-label="Close issues"
-            style={{ ...BTN_GHOST, padding: 2, height: 22 }}
-          >
-            <X size={14} />
-          </button>
-        </div>
+      {/* Header. Not ModalHeader: this one carries live counts and a bulk
+          action, so it composes its own row. */}
+      <div className="flex shrink-0 items-center gap-2 border-b border-subtle bg-sidebar px-4 py-3">
+        <AlertTriangle
+          size={14}
+          className={errorCount > 0 ? 'text-danger-fg' : 'text-warn-fg'}
+          aria-hidden="true"
+        />
+        <h2 id="issues-title" className="font-ui text-base font-semibold text-fg">
+          Issues
+        </h2>
+        <span className="flex items-center gap-2 font-mono text-xs">
+          <span className="text-danger-fg">{errorCount} errors</span>
+          <span className="text-faint">·</span>
+          <span className="text-warn-fg">{warnCount} warnings</span>
+        </span>
+        <div className="flex-1" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={copyAll}
+          disabled={!filtered.length}
+          title="Copy visible issues"
+        >
+          <Copy size={11} aria-hidden="true" />
+          Copy all
+        </Button>
+        <IconButton ref={closeRef} label="Close issues" size="sm" onClick={onClose}>
+          <X size={14} aria-hidden="true" />
+        </IconButton>
+      </div>
 
-        {/* Filters */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          padding: 'var(--space-2) var(--space-4)',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-panel-alt)', flexShrink: 0,
-          flexWrap: 'wrap',
-        }}>
-          <div className="seg" role="group" aria-label="Severity">
-            {[
-              { id: 'all', label: 'All', n: errorCount + warnCount },
-              { id: 'error', label: 'Errors', n: errorCount },
-              { id: 'warn', label: 'Warnings', n: warnCount },
-            ].map((s) => (
-              <button
-                key={s.id}
-                className="seg-btn"
-                aria-pressed={severity === s.id}
-                onClick={() => setSeverity(s.id)}
-              >
-                <span className="tick" aria-hidden="true">✓</span>
-                {s.label}
-                <span style={{ opacity: 0.7 }}>{s.n}</span>
-              </button>
-            ))}
-          </div>
-
-          <span className="rule" aria-hidden="true" />
-
-          <div className="seg" role="group" aria-label="Source">
+      {/* Filters. `.seg`/`.seg-btn`/`.tick` are the project's existing segmented
+          control in ui.css — already token-driven, so they stay as-is. */}
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-subtle bg-panel-alt px-4 py-2">
+        <div className="seg" role="group" aria-label="Severity">
+          {[
+            { id: 'all', label: 'All', n: errorCount + warnCount },
+            { id: 'error', label: 'Errors', n: errorCount },
+            { id: 'warn', label: 'Warnings', n: warnCount },
+          ].map((s) => (
             <button
+              key={s.id}
+              type="button"
               className="seg-btn"
-              aria-pressed={source === 'all'}
-              onClick={() => setSource('all')}
+              aria-pressed={severity === s.id}
+              onClick={() => setSeverity(s.id)}
             >
               <span className="tick" aria-hidden="true">✓</span>
-              Any
+              {s.label}
+              <span className="opacity-70 tabular-nums">{s.n}</span>
             </button>
-            {SOURCES.filter((s) => (bySource[s.id] || 0) > 0).map((s) => (
-              <button
-                key={s.id}
-                className="seg-btn"
-                aria-pressed={source === s.id}
-                onClick={() => setSource(s.id)}
-              >
-                <span className="tick" aria-hidden="true">✓</span>
-                {s.label}
-                <span style={{ opacity: 0.7 }}>{bySource[s.id]}</span>
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
 
-        {/* List */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {!filtered.length ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 'var(--space-2)',
-              padding: 'var(--space-8) var(--space-4)', textAlign: 'center',
-            }}>
-              <ShieldCheck size={22} style={{ color: 'var(--status-success-text)', opacity: 0.8 }} />
-              <div style={{
-                fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)',
-                color: 'var(--text-secondary)', fontFamily: 'var(--font-ui)',
-              }}>
-                {issues.length ? 'Nothing matches these filters' : 'No issues detected'}
-              </div>
-              <div style={{
-                fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)',
-                fontFamily: 'var(--font-ui)', maxWidth: 380,
-                lineHeight: 'var(--line-height-normal)',
-              }}>
-                {issues.length
-                  ? 'Try widening the severity or source filter.'
-                  : 'Console errors, failed requests, and server or storage problems will collect here.'}
-              </div>
+        <span className="rule" aria-hidden="true" />
+
+        <div className="seg" role="group" aria-label="Source">
+          <button
+            type="button"
+            className="seg-btn"
+            aria-pressed={source === 'all'}
+            onClick={() => setSource('all')}
+          >
+            <span className="tick" aria-hidden="true">✓</span>
+            Any
+          </button>
+          {SOURCES.filter((s) => (bySource[s.id] || 0) > 0).map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className="seg-btn"
+              aria-pressed={source === s.id}
+              onClick={() => setSource(s.id)}
+            >
+              <span className="tick" aria-hidden="true">✓</span>
+              {s.label}
+              <span className="opacity-70 tabular-nums">{bySource[s.id]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="min-h-0 flex-1 overflow-auto">
+        {!filtered.length ? (
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center">
+            <ShieldCheck size={22} className="text-success-fg opacity-80" aria-hidden="true" />
+            <div className="font-ui text-sm font-medium text-muted">
+              {issues.length ? 'Nothing matches these filters' : 'No issues detected'}
             </div>
-          ) : filtered.map((issue) => {
-            const Icon = SOURCE_ICON[issue.source] || AlertTriangle
-            const isErr = issue.severity === 'error'
-            const open = expanded.has(issue.id)
-            const caller = shortCaller(issue.caller)
-            return (
-              <div
-                key={issue.id}
-                style={{
-                  borderBottom: '1px solid var(--border-subtle)',
-                  background: isErr
-                    ? 'color-mix(in srgb, var(--status-danger-bg) 35%, transparent)'
-                    : 'transparent',
-                }}
-              >
-                <div style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)',
-                  padding: 'var(--space-2) var(--space-4)',
-                }}>
-                  {/* Severity: glyph + colour, never colour alone */}
-                  {isErr
-                    ? <XCircle size={13} style={{ color: 'var(--status-danger-text)', flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
-                    : <AlertTriangle size={13} style={{ color: 'var(--status-warning-text)', flexShrink: 0, marginTop: 1 }} aria-hidden="true" />}
-                  <span className="sr-only">{isErr ? 'Error' : 'Warning'}</span>
+            <div className="max-w-[380px] font-ui text-xs text-faint leading-normal">
+              {issues.length
+                ? 'Try widening the severity or source filter.'
+                : 'Console errors, failed requests, and server or storage problems will collect here.'}
+            </div>
+          </div>
+        ) : filtered.map((issue) => {
+          const Icon = SOURCE_ICON[issue.source] || AlertTriangle
+          const isErr = issue.severity === 'error'
+          const open = expanded.has(issue.id)
+          const caller = shortCaller(issue.caller)
+          return (
+            <div
+              key={issue.id}
+              className={cn(
+                'border-b border-subtle',
+                // A 35% wash: full --status-danger-bg on every error row would
+                // overwhelm a long list.
+                isErr && 'bg-[color-mix(in_srgb,var(--status-danger-bg)_35%,transparent)]',
+              )}
+            >
+              <div className="flex items-start gap-2 px-4 py-2">
+                {/* Severity: glyph + colour, never colour alone */}
+                {isErr
+                  ? <XCircle size={13} className="mt-px shrink-0 text-danger-fg" aria-hidden="true" />
+                  : <AlertTriangle size={13} className="mt-px shrink-0 text-warn-fg" aria-hidden="true" />}
+                <span className="sr-only">{isErr ? 'Error' : 'Warning'}</span>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <button
-                      onClick={() => toggle(issue.id)}
-                      aria-expanded={open}
-                      style={{
-                        display: 'block', width: '100%', textAlign: 'left',
-                        border: 'none', background: 'transparent', padding: 0,
-                        color: 'var(--text-primary)',
-                        fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-                        lineHeight: 'var(--line-height-normal)',
-                        cursor: 'pointer',
-                        overflow: 'hidden', textOverflow: 'ellipsis',
-                        whiteSpace: open ? 'normal' : 'nowrap',
-                        wordBreak: open ? 'break-word' : 'normal',
-                      }}
-                    >
-                      {issue.title}
-                    </button>
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => toggle(issue.id)}
+                    aria-expanded={open}
+                    className={cn(
+                      'block w-full border-none bg-transparent p-0 text-left',
+                      'font-mono text-xs text-fg leading-normal focus-ring',
+                      open ? 'whitespace-normal break-words' : 'cell-truncate',
+                    )}
+                  >
+                    {issue.title}
+                  </button>
 
-                    {/* Meta line */}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                      marginTop: 2, flexWrap: 'wrap',
-                      fontSize: 'var(--text-2xs)', fontFamily: 'var(--font-ui)',
-                      color: 'var(--text-tertiary)',
-                    }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                        <Icon size={9} aria-hidden="true" />
-                        {issue.source}
+                  {/* Meta line */}
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 font-ui text-2xs text-faint">
+                    <span className="inline-flex items-center gap-[3px]">
+                      <Icon size={9} aria-hidden="true" />
+                      {issue.source}
+                    </span>
+                    {issue.device && <span>· {issue.device}</span>}
+                    {issue.timestamp && <span>· {formatWhen(issue.timestamp)}</span>}
+                    {issue.count > 1 && (
+                      <span className="rounded-sm border border-subtle bg-card px-1 font-mono text-muted tabular-nums">
+                        ×{issue.count}
                       </span>
-                      {issue.device && <span>· {issue.device}</span>}
-                      {issue.timestamp && <span>· {formatWhen(issue.timestamp)}</span>}
-                      {issue.count > 1 && (
-                        <span style={{
-                          padding: '0 4px', borderRadius: 'var(--radius-sm)',
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-subtle)',
-                          fontFamily: 'var(--font-mono)',
-                          color: 'var(--text-secondary)',
-                        }}>
-                          ×{issue.count}
-                        </span>
-                      )}
-                    </div>
-
-                    {open && issue.detail && issue.detail !== issue.title && (
-                      <pre style={{
-                        margin: 'var(--space-2) 0 0',
-                        padding: 'var(--space-2)',
-                        background: 'var(--bg-code-block)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: 'var(--text-2xs)', fontFamily: 'var(--font-mono)',
-                        color: 'var(--text-secondary)',
-                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                        userSelect: 'text', maxHeight: 180, overflow: 'auto',
-                      }}>
-                        {issue.detail}
-                      </pre>
                     )}
                   </div>
 
-                  {/* Jump to source when we know where it came from */}
-                  {caller && onOpenInEditor && (
-                    <button
-                      onClick={() => onOpenInEditor(issue.caller.file, issue.caller.line, issue.caller.col)}
-                      title={`Open ${issue.caller.file}:${issue.caller.line} in editor`}
-                      style={{
-                        ...BTN_GHOST, flexShrink: 0, gap: 3,
-                        color: 'var(--text-link)', maxWidth: 160,
-                      }}
-                    >
-                      <FileCode2 size={10} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {caller}
-                      </span>
-                    </button>
+                  {open && issue.detail && issue.detail !== issue.title && (
+                    <pre className="mt-2 max-h-[180px] select-text overflow-auto rounded-sm border border-subtle bg-code p-2 font-mono text-2xs text-muted whitespace-pre-wrap break-words">
+                      {issue.detail}
+                    </pre>
                   )}
                 </div>
-              </div>
-            )
-          })}
-        </div>
 
-        {/* Footer */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          padding: 'var(--space-2) var(--space-4)',
-          borderTop: '1px solid var(--border-subtle)',
-          background: 'var(--bg-sidebar)', flexShrink: 0,
-        }}>
-          <span style={{ ...SECTION_LABEL, fontSize: 'var(--text-2xs)' }}>
-            {filtered.length} of {issues.length} shown
-          </span>
-          <div style={{ flex: 1 }} />
-          <span style={{
-            fontSize: 'var(--text-2xs)', color: 'var(--text-tertiary)',
-            fontFamily: 'var(--font-ui)',
-          }}>
-            Repeats are grouped
-          </span>
-          <button onClick={onClose} style={{ ...BTN_SECONDARY, height: 26 }}>
-            <Check size={11} />
-            Done
-          </button>
-        </div>
+                {/* Jump to source when we know where it came from */}
+                {caller && onOpenInEditor && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onOpenInEditor(issue.caller.file, issue.caller.line, issue.caller.col)}
+                    title={`Open ${issue.caller.file}:${issue.caller.line} in editor`}
+                    className="max-w-[160px] gap-[3px] text-link"
+                  >
+                    <FileCode2 size={10} aria-hidden="true" />
+                    <span className="cell-truncate">{caller}</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
-    </div>,
-    document.body,
+
+      {/* Footer */}
+      <div className="flex shrink-0 items-center gap-2 border-t border-subtle bg-sidebar px-4 py-2">
+        <SectionLabel>{filtered.length} of {issues.length} shown</SectionLabel>
+        <div className="flex-1" />
+        <span className="font-ui text-2xs text-faint">Repeats are grouped</span>
+        <Button variant="secondary" size="sm" onClick={onClose}>
+          <Check size={11} aria-hidden="true" />
+          Done
+        </Button>
+      </div>
+    </Modal>
   )
 }

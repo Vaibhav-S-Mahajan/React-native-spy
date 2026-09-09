@@ -2,7 +2,7 @@
 
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
-  Clipboard, Code, Copy, ExternalLink, FileText, Search, Terminal,
+  Clipboard, Code, Copy, ExternalLink, FileText, Terminal,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -10,18 +10,21 @@ import ClickablePath, { parseLocations } from './ClickablePath'
 import CursorMenu, { MenuItem, MenuDivider, MenuLabel } from './CursorMenu'
 import LevelChip from './LevelChip'
 import { copyText } from '../../utils/curl'
-import { EMPTY_STATE, INPUT_BASE, BTN_GHOST } from '../../styles/shared'
+import { EmptyState, SearchInput, Toolbar, ToolbarDivider } from '../ui'
+import cn from '../ui/cn'
 import ToolbarActions from './ToolbarActions'
 
 const LEVELS = ['log', 'info', 'warn', 'error', 'debug']
-const CAP_HEIGHT = 200
 
+// `color`/`dot` stay CSS values because LevelChip mixes them at runtime via
+// color-mix(). `rowBg` is a class: only warn/error tint their row, and the
+// hover state has to compose with it.
 const LEVEL_CFG = {
-  log:   { color: 'var(--text-secondary)', bg: 'transparent', tag: 'LOG', tagBg: 'var(--bg-card)', label: 'Log', dot: 'var(--text-tertiary)' },
-  info:  { color: 'var(--status-info-text)', bg: 'transparent', tag: 'INF', tagBg: 'var(--status-info-bg)', label: 'Info', dot: 'var(--status-info-text)' },
-  warn:  { color: 'var(--status-warning-text)', bg: 'var(--status-warning-bg)', tag: 'WRN', tagBg: 'var(--status-warning-bg)', label: 'Warn', dot: 'var(--status-warning-text)' },
-  error: { color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)', tag: 'ERR', tagBg: 'var(--status-danger-bg)', label: 'Error', dot: 'var(--status-danger-text)' },
-  debug: { color: 'var(--accent-purple)', bg: 'transparent', tag: 'DBG', tagBg: 'var(--bg-card)', label: 'Debug', dot: 'var(--accent-purple)' },
+  log:   { color: 'var(--text-secondary)', rowBg: 'hover:bg-row-hover', tag: 'LOG', label: 'Log', dot: 'var(--text-tertiary)' },
+  info:  { color: 'var(--status-info-text)', rowBg: 'hover:bg-row-hover', tag: 'INF', label: 'Info', dot: 'var(--status-info-text)' },
+  warn:  { color: 'var(--status-warning-text)', rowBg: 'bg-warn', tag: 'WRN', label: 'Warn', dot: 'var(--status-warning-text)' },
+  error: { color: 'var(--status-danger-text)', rowBg: 'bg-danger', tag: 'ERR', label: 'Error', dot: 'var(--status-danger-text)' },
+  debug: { color: 'var(--accent-purple)', rowBg: 'hover:bg-row-hover', tag: 'DBG', label: 'Debug', dot: 'var(--accent-purple)' },
 }
 
 function formatTime(ts) {
@@ -134,14 +137,8 @@ export default forwardRef(function ConsoleTab({ logs, openInEditor, symbolicateA
   const menuMsgLocations = menu?.locations?.filter((s) => s.type === 'link') || []
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--bg-panel)' }}>
-      {/* ─── Toolbar ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: '0 var(--space-3)', height: 38, flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-panel-alt)',
-      }}>
+    <div className="pane bg-panel">
+      <Toolbar>
         {LEVELS.map((level) => {
           const active = activeLevels.has(level)
           const cfg = LEVEL_CFG[level]
@@ -158,38 +155,28 @@ export default forwardRef(function ConsoleTab({ logs, openInEditor, symbolicateA
           )
         })}
 
-        <div style={{ width: 1, height: 14, background: 'var(--border-subtle)' }} />
+        <ToolbarDivider />
 
-        <Search size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-        <input
+        <SearchInput
           ref={searchRef}
-          value={search} onChange={(e) => setSearch(e.target.value)}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter…"
-          style={{
-            ...INPUT_BASE, flex: 1, height: 30, fontSize: 'var(--text-sm)',
-            border: 'none', background: 'transparent', padding: 0,
-          }}
+          aria-label="Filter console output"
+          count={filtered.length}
         />
-        <span style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-          {filtered.length}
-        </span>
+
         <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
-      </div>
+      </Toolbar>
 
       {/* ─── Log Stream ─── */}
-      <div
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}
-      >
+      <div className="min-h-0 flex-1 overflow-auto font-mono text-xs">
         {filtered.length === 0 ? (
-          <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-            <Terminal size={20} style={{ opacity: 0.3 }} />
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-              No console output
-            </div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-              Console logs will stream here
-            </div>
-          </div>
+          <EmptyState
+            icon={Terminal}
+            title={search ? 'No matching logs' : 'No console output'}
+            description={search ? 'Try a different filter.' : 'Console logs will stream here.'}
+          />
         ) : (
           filtered.map((log, i) => {
           const cfg = LEVEL_CFG[log.level] || LEVEL_CFG.log
@@ -308,35 +295,30 @@ export default forwardRef(function ConsoleTab({ logs, openInEditor, symbolicateA
 // ─── Console row (full pretty-printed output) ───────────
 function ConsoleRow({ log, cfg, textColor, callerLabel, isCapped, onContextMenu, onCopy, onOpenSource, caller, openInEditor }) {
   const [expanded, setExpanded] = useState(false)
-  const [hover, setHover] = useState(false)
   const pretty = log.args.map(renderArgPretty).join('\n')
   const capped = isCapped && !expanded
 
   return (
     <div
       onContextMenu={onContextMenu}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        position: 'relative',
-        padding: '5px var(--space-3)',
-        borderBottom: '1px solid var(--border-subtle)',
-        background: cfg.bg,
-        cursor: 'default',
-      }}
+      className={cn(
+        'group relative border-b border-subtle px-3 py-[5px]',
+        cfg.rowBg,
+      )}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)', marginBottom: 2 }}>
-        <span style={{
-          width: 26, flexShrink: 0, textAlign: 'center',
-          fontSize: 9, fontWeight: 'var(--font-weight-semibold)',
-          color: cfg.color, letterSpacing: '0.02em',
-        }}>
+      <div className="mb-0.5 flex items-baseline gap-2">
+        {/* Severity tag. Colour is per-level and comes from LEVEL_CFG, so it
+            stays a style prop rather than becoming five near-identical classes. */}
+        <span
+          className="w-[26px] shrink-0 text-center text-[9px] font-semibold tracking-[0.02em]"
+          style={{ color: cfg.color }}
+        >
           {cfg.tag}
         </span>
-        <span style={{ width: 80, flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10 }}>
+        <span className="w-20 shrink-0 text-[10px] text-faint tabular-nums">
           {formatTime(log.timestamp)}
         </span>
-        <span style={{ flex: 1 }} />
+        <span className="flex-1" />
         {callerLabel && (
           <CallerBadge
             caller={caller}
@@ -345,82 +327,71 @@ function ConsoleRow({ log, cfg, textColor, callerLabel, isCapped, onContextMenu,
           />
         )}
       </div>
+
+      {/* ml-[106px] aligns the message under the tag+time gutter (26+80). */}
       <div
-        style={{
-          marginLeft: 106,
-          color: textColor,
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          userSelect: 'text',
-          overflow: capped ? 'hidden' : 'visible',
-          maxHeight: capped ? CAP_HEIGHT : 'none',
-        }}
+        className={cn(
+          'ml-[106px] select-text whitespace-pre-wrap break-words',
+          capped ? 'max-h-[200px] overflow-hidden' : 'overflow-visible',
+        )}
+        style={{ color: textColor }}
       >
         <ClickablePath text={pretty} color={textColor} openInEditor={openInEditor} />
       </div>
 
       {capped && (
         <button
+          type="button"
           onClick={() => setExpanded(true)}
-          style={{
-            ...BTN_GHOST, marginLeft: 106, marginTop: 2, fontSize: 10,
-            color: 'var(--text-link)', gap: 2,
-          }}
+          className="ml-[106px] mt-0.5 inline-flex h-control-sm items-center gap-0.5 rounded-sm px-1 font-ui text-[10px] font-medium text-link hover:bg-card focus-ring"
         >
           Show more
         </button>
       )}
 
-      {hover && (
-        <button
-          onClick={onCopy}
-          title="Copy"
-          style={{
-            position: 'absolute', top: 4, right: 6,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 22, height: 22, borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-panel)', color: 'var(--text-tertiary)',
-            cursor: 'pointer',
-          }}
-        >
-          <Copy size={11} />
-        </button>
-      )}
+      {/* Revealed on row hover or keyboard focus — previously gated on a hover
+          state hook, which made it unreachable without a mouse. */}
+      <button
+        type="button"
+        onClick={onCopy}
+        aria-label="Copy message"
+        title="Copy"
+        className="absolute right-1.5 top-1 flex h-[22px] w-[22px] items-center justify-center rounded-sm border border-subtle bg-panel text-faint opacity-0 transition-opacity duration-100 hover:text-fg focus-ring group-hover:opacity-100 focus-visible:opacity-100"
+      >
+        <Copy size={11} aria-hidden="true" />
+      </button>
     </div>
   )
 }
 
 // ─── Caller badge (right side of each row) ───────────
+// Renders as a real <button> when clickable — it was a role="button" <span>,
+// which meant no native keyboard or focus behaviour. Hover styling is now CSS,
+// so the component no longer re-renders on mouse enter/leave.
 function CallerBadge({ caller, label, onClick }) {
-  const [hover, setHover] = useState(false)
+  const location = `${caller.file}:${caller.line}:${caller.col}`
+  const shared = 'cell-truncate max-w-[160px] shrink-0 rounded-sm px-1.5 py-px font-mono text-[10px]'
+
+  if (!onClick) {
+    return (
+      <span className={cn(shared, 'text-faint')} title={location}>
+        {label}
+      </span>
+    )
+  }
+
   return (
-    <span
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick ? (e) => { e.stopPropagation(); onClick() } : undefined}
-      onKeyDown={onClick ? (e) => { if (e.key === 'Enter') onClick() } : undefined}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      title={onClick ? `Open ${caller.file}:${caller.line}:${caller.col} in VS Code` : `${caller.file}:${caller.line}:${caller.col}`}
-      style={{
-        flexShrink: 0,
-        fontSize: 10,
-        fontFamily: 'var(--font-mono)',
-        color: hover ? 'var(--text-link)' : 'var(--text-tertiary)',
-        textDecoration: hover ? 'underline' : 'none',
-        cursor: onClick ? 'pointer' : 'default',
-        padding: '1px 6px',
-        borderRadius: 'var(--radius-sm)',
-        background: hover ? 'var(--status-info-bg)' : 'transparent',
-        transition: 'all 80ms ease',
-        maxWidth: 160,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      }}
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onClick() }}
+      title={`Open ${location} in VS Code`}
+      className={cn(
+        shared,
+        'bg-transparent text-faint transition-colors duration-100',
+        'hover:bg-info hover:text-link hover:underline focus-ring',
+      )}
     >
       {label}
-    </span>
+    </button>
   )
 }

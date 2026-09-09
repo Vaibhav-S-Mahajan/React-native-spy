@@ -15,7 +15,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Palette } from 'lucide-react'
 
-import { BTN_GHOST } from '../../styles/shared'
+import cn from '../ui/cn'
 import { useTheme } from '../../hooks/useTheme'
 
 const MENU_W = 248
@@ -114,23 +114,17 @@ export default function ThemeMenu() {
         aria-label={`Change theme, current theme ${meta.label}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        style={{
-          ...BTN_GHOST,
-          gap: 'var(--space-1)',
-          color: open ? 'var(--text-primary)' : 'var(--text-tertiary)',
-          background: open ? 'var(--bg-card)' : 'transparent',
-        }}
+        className={cn(
+          'inline-flex h-control-sm shrink-0 items-center gap-1 rounded-md border-none px-2',
+          'font-ui text-2xs font-medium leading-tight transition-colors duration-150 focus-ring',
+          open ? 'bg-card text-fg' : 'bg-transparent text-faint hover:bg-card hover:text-muted',
+        )}
       >
-        <Palette size={12} />
+        <Palette size={12} aria-hidden="true" />
         {/* Live swatch so the trigger reflects the active theme at a glance */}
         <span
           aria-hidden="true"
-          style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: 'var(--accent-primary)',
-            border: '1px solid var(--border-default)',
-            flexShrink: 0,
-          }}
+          className="h-2 w-2 shrink-0 rounded-full border border-default bg-accent"
         />
       </button>
 
@@ -141,27 +135,13 @@ export default function ThemeMenu() {
           aria-label="Theme"
           onKeyDown={onMenuKeyDown}
           onMouseLeave={clearPreview}
-          className="animate-fade-in"
-          style={{
-            position: 'fixed',
-            top: pos.top, left: pos.left, width: MENU_W,
-            zIndex: 1400,
-            padding: 'var(--space-1)',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-lg)',
-          }}
+          className="animate-fade-in fixed z-[1400] rounded-lg border border-default bg-card p-1 shadow-lg"
+          /* Anchored to the trigger and flipped to stay on screen — computed. */
+          style={{ top: pos.top, left: pos.left, width: MENU_W }}
         >
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '5px var(--space-2) 3px',
-            fontSize: 'var(--text-xs)', fontWeight: 'var(--font-weight-semibold)',
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            color: 'var(--text-tertiary)', fontFamily: 'var(--font-ui)',
-          }}>
+          <div className="flex items-center justify-between px-2 pb-[3px] pt-[5px] font-ui text-xs font-semibold uppercase tracking-caps text-faint">
             <span>Theme</span>
-            <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 'var(--font-weight-medium)' }}>
+            <span className="font-medium normal-case tracking-normal">
               hover to preview
             </span>
           </div>
@@ -180,49 +160,34 @@ export default function ThemeMenu() {
                 onClick={() => { setTheme(t.id); close() }}
                 onMouseEnter={() => { setActiveIdx(i); previewTheme(t.id) }}
                 onFocus={() => previewTheme(t.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                  width: '100%', padding: '6px var(--space-2)',
-                  border: 'none', borderRadius: 'var(--radius-md)',
-                  background: active ? 'var(--bg-card-hover)' : 'transparent',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer', textAlign: 'left',
-                  fontFamily: 'var(--font-ui)',
-                  transition: 'background 120ms ease',
-                }}
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md border-none px-2 py-1.5',
+                  'text-left font-ui transition-colors duration-150 focus-ring',
+                  active ? 'bg-card-hover' : 'bg-transparent',
+                )}
               >
-                {/* Three-stop swatch: surface, accent, secondary */}
+                {/* Three-stop swatch: surface, accent, secondary. These are the
+                    theme's OWN colours being previewed, so they are literal
+                    values by definition — not themeable tokens. */}
                 <span
                   aria-hidden="true"
-                  style={{
-                    display: 'flex', flexShrink: 0,
-                    width: 30, height: 18,
-                    borderRadius: 'var(--radius-sm)',
-                    overflow: 'hidden',
-                    border: '1px solid var(--border-default)',
-                  }}
+                  className="flex h-[18px] w-[30px] shrink-0 overflow-hidden rounded-sm border border-default"
                 >
                   {t.swatch.map((c, si) => (
-                    <span key={si} style={{ flex: si === 0 ? 2 : 1, background: c }} />
+                    <span key={si} className={si === 0 ? 'flex-[2]' : 'flex-1'} style={{ background: c }} />
                   ))}
                 </span>
 
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{
-                    display: 'block',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: selected ? 'var(--font-weight-semibold)' : 'var(--font-weight-medium)',
-                    color: selected ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    lineHeight: 'var(--line-height-tight)',
-                  }}>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={cn(
+                      'block text-sm leading-tight',
+                      selected ? 'font-semibold text-fg' : 'font-medium text-muted',
+                    )}
+                  >
                     {t.label}
                   </span>
-                  <span style={{
-                    display: 'block',
-                    fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    lineHeight: 'var(--line-height-tight)', marginTop: 1,
-                  }}>
+                  <span className="cell-truncate mt-px block text-xs text-faint leading-tight">
                     {t.blurb}
                   </span>
                 </span>
@@ -230,11 +195,7 @@ export default function ThemeMenu() {
                 {/* Glyph, not colour alone, marks the selection */}
                 <Check
                   size={13}
-                  style={{
-                    flexShrink: 0,
-                    color: 'var(--accent-primary)',
-                    opacity: selected ? 1 : 0,
-                  }}
+                  className={cn('shrink-0 text-accent', selected ? 'opacity-100' : 'opacity-0')}
                   aria-hidden="true"
                 />
               </button>

@@ -1,0 +1,212 @@
+/* ═══════════════════════════════════════════════════════
+   Tailwind bridge
+   ───────────────────────────────────────────────────────
+   Maps the design tokens defined in theme.css into Tailwind's
+   theme namespaces, so utilities like `bg-panel` / `h-row` /
+   `text-2xs` exist and are driven by the SAME variables the
+   12 palettes in themes.css override.
+
+   `@theme inline` is LOAD-BEARING. With it, `bg-panel` compiles to
+   `background-color: var(--bg-panel)` — so a `[data-theme="paper"]`
+   override repaints it. Without `inline`, Tailwind snapshots the
+   value at :root and every theme but the default breaks (light
+   themes would render dark text on dark surfaces).
+   Verified: inline -> var(--bg-panel), plain -> var(--color-panel).
+
+   Consequence: DO NOT use Tailwind's built-in palette or spacing
+   for themed surfaces. `bg-slate-800` / `text-gray-400` ignore the
+   user's theme. Use the semantic names below.
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Cascade layers ────────────────────────────────────
+   Declared FIRST, because this single line decides who wins every conflict.
+   Later layer = higher priority, so `utilities` beats `legacy`.
+
+   Why this is load-bearing: an UNLAYERED rule outranks every layered rule,
+   regardless of source order. theme.css contains
+   `input, textarea, select, button { font-family: inherit; color: inherit }`
+   — unlayered, that beat `font-mono` / `text-fg` on every button and input in
+   the app, so utilities silently did nothing. Importing the three legacy
+   sheets into `legacy` puts them back under Tailwind's utilities.
+
+   theme.css and themes.css share one layer and keep their relative order, so
+   `[data-theme="…"]` still overrides `:root` exactly as before. */
+@layer theme, base, legacy, components, utilities;
+
+@import "tailwindcss";
+
+/* The project's existing stylesheets: tokens, then palettes, then the class
+   system. Imported here (not in main.jsx) so they land inside `legacy`. */
+@import "./theme.css" layer(legacy);
+@import "./themes.css" layer(legacy);
+@import "./ui.css" layer(legacy);
+
+@theme inline {
+  /* ─── Surfaces ─── bg-app, bg-panel, bg-card … */
+  --color-app: var(--bg-app);
+  --color-sidebar: var(--bg-sidebar);
+  --color-panel: var(--bg-panel);
+  --color-panel-alt: var(--bg-panel-alt);
+  --color-card: var(--bg-card);
+  --color-card-hover: var(--bg-card-hover);
+  --color-input: var(--bg-input);
+  --color-code: var(--bg-code-block);
+
+  /* ─── Rows ─── bg-row-hover, bg-row-selected */
+  --color-row-hover: var(--row-hover);
+  --color-row-selected: var(--row-selected);
+  --color-row-selected-hover: var(--row-selected-hover);
+
+  /* ─── Borders ─── border-subtle, border-default, border-strong */
+  --color-subtle: var(--border-subtle);
+  --color-default: var(--border-default);
+  --color-strong: var(--border-strong);
+
+  /* ─── Text ─── text-fg, text-muted, text-faint, text-link */
+  --color-fg: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-faint: var(--text-tertiary);
+  --color-link: var(--text-link);
+
+  /* ─── Accent ─── bg-accent, text-accent-fg */
+  --color-accent: var(--accent-primary);
+  --color-accent-hover: var(--accent-primary-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-muted: var(--accent-muted);
+  --color-purple: var(--accent-purple);
+
+  /* ─── Status ─── bg-success/warn/danger/info + -fg and -edge variants.
+     Named -fg/-edge rather than -text/-border so the utility reads
+     `text-success-fg` / `border-info-edge` instead of `text-success-text`. */
+  --color-success: var(--status-success-bg);
+  --color-success-fg: var(--status-success-text);
+  --color-success-edge: var(--status-success-border);
+  --color-warn: var(--status-warning-bg);
+  --color-warn-fg: var(--status-warning-text);
+  --color-warn-edge: var(--status-warning-border);
+  --color-danger: var(--status-danger-bg);
+  --color-danger-fg: var(--status-danger-text);
+  --color-danger-edge: var(--status-danger-border);
+  --color-info: var(--status-info-bg);
+  --color-info-fg: var(--status-info-text);
+  --color-info-edge: var(--status-info-border);
+
+  /* ─── HTTP methods ─── text-method-get … */
+  --color-method-get: var(--method-get);
+  --color-method-post: var(--method-post);
+  --color-method-put: var(--method-put);
+  --color-method-delete: var(--method-delete);
+  --color-method-patch: var(--method-patch);
+
+  /* ─── JSON syntax ─── text-json-key … */
+  --color-json-key: var(--json-key);
+  --color-json-string: var(--json-string);
+  --color-json-number: var(--json-number);
+  --color-json-keyword: var(--json-keyword);
+
+  /* ─── Diff ─── bg-diff-add, text-diff-add-fg */
+  --color-diff-add: var(--diff-add-bg);
+  --color-diff-add-fg: var(--diff-add-text);
+  --color-diff-remove: var(--diff-remove-bg);
+  --color-diff-remove-fg: var(--diff-remove-text);
+
+  /* ─── Scrim ─── bg-overlay */
+  --color-overlay: var(--overlay);
+  --color-overlay-soft: var(--overlay-soft);
+
+  /* ─── Typography ─── text-2xs … text-lg */
+  --text-2xs: var(--text-2xs);
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-md: var(--text-md);
+  --text-lg: var(--text-lg);
+
+  --font-ui: var(--font-ui);
+  --font-mono: var(--font-mono);
+
+  --font-weight-regular: var(--font-weight-regular);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+
+  --leading-tight: var(--line-height-tight);
+  --leading-normal: var(--line-height-normal);
+
+  --tracking-caps: var(--track-caps);
+
+  /* ─── Spacing ───
+     Mapped onto Tailwind's numeric scale so p-1/gap-3/px-4 resolve to the
+     project's 4/8/12/16/20/24/32 px steps rather than Tailwind's 0.25rem
+     multiples. Keeps `gap-3` meaning 12px, as the existing code expects. */
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+
+  /* ─── Chrome heights ─── h-header, h-tab, h-toolbar …
+     These exist so the 19 ad-hoc `height: N` values in the components
+     collapse onto one named scale. Never write h-[38px] again. */
+  --spacing-header: var(--header-height);
+  --spacing-tab: var(--tab-height);
+  --spacing-devicebar: var(--devicebar-height);
+  --spacing-toolbar: var(--toolbar-height);
+  --spacing-colhead: var(--colhead-height);
+  --spacing-row: var(--row-height);
+  --spacing-row-lg: var(--row-height-lg);
+
+  /* ─── Control heights ─── h-control-sm/md/lg, w-control-md (square buttons) */
+  --spacing-control-sm: var(--control-sm);
+  --spacing-control-md: var(--control-md);
+  --spacing-control-lg: var(--control-lg);
+
+  /* ─── Radius ─── rounded-sm/md/lg */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  /* ─── Shadows ─── shadow-sm/md/lg. Borders carry structure; these are
+     for genuinely floating surfaces (modals, menus) only. */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* ─── Motion ─── duration-fast/base, ease-standard */
+  --ease-standard: var(--ease);
+}
+
+/* ── Component-agnostic helpers ────────────────────────
+   Only for things utilities express badly. Anything that can be a
+   utility string in JSX stays in JSX. */
+
+/* The single most-repeated flex idiom in this codebase: a scroll
+   container that must actually shrink inside a flex parent. Both
+   min-*-0 are required or content forces the panel wider/taller. */
+@utility pane {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+}
+
+/* Truncate a data cell without letting it widen the layout. Pairs with
+   `pane` — a long URL is the usual cause of horizontal overflow here. */
+@utility cell-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Focus ring used by every interactive primitive. focus-visible so a
+   mouse click doesn't ring, keyboard navigation does. */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: -1px;
+  }
+}

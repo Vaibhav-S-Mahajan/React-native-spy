@@ -1,10 +1,13 @@
 // src/renderer/components/rnspy-devtools/WebSocketTab.jsx
 
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, Braces, Copy, EyeOff, Radio, Search } from 'lucide-react'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, Braces, Copy, EyeOff, Radio } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useVirtualRows } from '../../hooks/useVirtualRows'
-import { EMPTY_STATE, INPUT_BASE, SECTION_LABEL, BTN_GHOST } from '../../styles/shared'
+import {
+  Badge, Button, EmptyState, SearchInput, SectionLabel, Toolbar,
+} from '../ui'
+import cn from '../ui/cn'
 import LevelChip from './LevelChip'
 import ToolbarActions from './ToolbarActions'
 
@@ -133,11 +136,8 @@ function prettyPrintFrame(data) {
 function FrameDetail({ frame, onClear }) {
   if (!frame) {
     return (
-      <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)', padding: 'var(--space-3)' }}>
-        <Braces size={18} style={{ opacity: 0.3 }} />
-        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-          Select a frame to view its payload
-        </div>
+      <div className="pane bg-panel">
+        <EmptyState icon={Braces} description="Select a frame to view its payload" />
       </div>
     )
   }
@@ -146,63 +146,45 @@ function FrameDetail({ frame, onClear }) {
   const srLabel = signalRLabel(frame.data)
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--bg-panel)' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: 'var(--space-2) var(--space-3)', flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-panel-alt)',
-      }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)',
-          fontSize: 'var(--text-xs)', fontFamily: 'var(--font-ui)', fontWeight: 'var(--font-weight-medium)',
-          color: frame.dir === 'send' ? 'var(--status-success-text)' : 'var(--status-info-text)',
-        }}>
-          {frame.dir === 'send' ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
+    <div className="pane bg-panel">
+      <div className="flex shrink-0 items-center gap-2 border-b border-subtle bg-panel-alt px-3 py-2">
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 font-ui text-xs font-medium',
+            frame.dir === 'send' ? 'text-success-fg' : 'text-info-fg',
+          )}
+        >
+          {frame.dir === 'send'
+            ? <ArrowUp size={10} aria-hidden="true" />
+            : <ArrowDown size={10} aria-hidden="true" />}
           {frame.dir === 'send' ? 'Sent' : 'Received'}
         </span>
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+        <span className="font-mono text-xs text-faint tabular-nums">
           {formatTime(frame.timestamp)}
         </span>
         {srLabel && (
-          <span style={{
-            fontSize: 9, padding: '1px 4px', borderRadius: 3,
-            background: 'var(--accent-muted)', color: 'var(--accent-primary)',
-            fontFamily: 'var(--font-ui)', fontWeight: 'var(--font-weight-medium)',
-          }}>
-            {srLabel}
-          </span>
+          <Badge tone="accent" size="sm">{srLabel}</Badge>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+        <span className="ml-auto font-mono text-[10px] text-faint tabular-nums">
           {formatSize(frame.size)}
         </span>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => {
             copyText(pretty)
             toast.success('Frame copied', { duration: 1200 })
           }}
-          style={{ ...BTN_GHOST, height: 22, padding: '0 var(--space-2)' }}
           title="Copy payload"
         >
-          <Copy size={11} />
-          <span style={{ fontSize: 10 }}>Copy</span>
-        </button>
-        <button
-          onClick={onClear}
-          style={{ ...BTN_GHOST, height: 22, padding: '0 var(--space-2)' }}
-          title="Close detail"
-        >
-          <span style={{ fontSize: 10 }}>Close</span>
-        </button>
+          <Copy size={11} aria-hidden="true" />
+          Copy
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onClear} title="Close detail">
+          Close
+        </Button>
       </div>
-      <pre style={{
-        flex: 1, minHeight: 0, overflow: 'auto',
-        margin: 0, padding: 'var(--space-3)',
-        fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)',
-        lineHeight: 'var(--line-height-base)', color: 'var(--text-primary)',
-        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-        background: 'var(--bg-panel)',
-      }}>
+      <pre className="m-0 min-h-0 flex-1 select-text overflow-auto bg-panel p-3 font-mono text-xs text-fg leading-normal whitespace-pre-wrap break-words">
         {pretty}
       </pre>
     </div>
@@ -301,90 +283,75 @@ export default forwardRef(function WebSocketTab({ connections, onClear, onReload
   })
 
   return (
-    <div ref={containerRef} style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+    <div ref={containerRef} className="flex min-h-0 flex-1">
       {/* ─── Connection List (virtualized) ─── */}
-      <div style={{
-        flex: `0 0 ${connWidth}px`, minWidth: 0, display: 'flex', flexDirection: 'column',
-        borderRight: '1px solid var(--border-subtle)', background: 'var(--bg-panel-alt)',
-      }}>
-        <div style={{
-          padding: 'var(--space-2) var(--space-3)',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-sidebar)',
-          ...SECTION_LABEL, fontSize: 10,
-        }}>
-          CONNECTIONS ({sorted.length})
+      {/* Width is drag-resizable, so the flex-basis stays inline. */}
+      <div
+        className="flex min-w-0 flex-col border-r border-subtle bg-panel-alt"
+        style={{ flex: `0 0 ${connWidth}px` }}
+      >
+        <div className="border-b border-subtle bg-sidebar px-3 py-2">
+          <SectionLabel>Connections ({sorted.length})</SectionLabel>
         </div>
-        <div ref={connScrollRef} onScroll={connVirt.onScroll}
-          style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <div
+          ref={connScrollRef}
+          onScroll={connVirt.onScroll}
+          className="min-h-0 flex-1 overflow-auto"
+        >
           {sorted.length === 0 ? (
-            <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel-alt)' }}>
-              <Radio size={20} style={{ opacity: 0.3 }} />
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-                No WebSocket connections
-              </div>
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-                WebSocket connections will appear here
-              </div>
-            </div>
+            <EmptyState
+              icon={Radio}
+              title="No WebSocket connections"
+              description="WebSocket connections will appear here."
+            />
           ) : (
             <>
               {connVirt.topSpacer > 0 && <div style={{ height: connVirt.topSpacer }} />}
               {sorted.slice(connVirt.startIdx, connVirt.endIdx).map((conn) => {
-            const isSel = conn.wsId === (selected?.wsId || null)
-            const isSR = isSignalRConnection(conn)
-            return (
-              <div
-                key={conn.wsId}
-                onClick={() => selectConnection(conn.wsId)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                  padding: 'var(--space-2) var(--space-3)', cursor: 'pointer',
-                  height: CONN_ROW_HEIGHT,
-                  background: isSel ? 'var(--bg-card-hover)' : 'transparent',
-                  borderBottom: '1px solid var(--border-subtle)',
-                  transition: 'background-color 80ms',
-                }}
-                onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.background = 'var(--bg-card-hover)' }}
-                onMouseLeave={(e) => { if (!isSel) e.currentTarget.style.background = '' }}
-              >
-                <span style={{
-                  width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
-                  background: statusColor(conn.status),
-                }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 'var(--space-1)',
-                    lineHeight: 'var(--line-height-tight)',
-                  }}>
-                    {isSR && (
-                      <span style={{
-                        fontSize: 8, padding: '0 3px', borderRadius: 2, flexShrink: 0,
-                        background: 'var(--accent-muted)', color: 'var(--accent-primary)',
-                        fontFamily: 'var(--font-ui)', fontWeight: 'var(--font-weight-bold)',
-                        lineHeight: '14px',
-                      }}>SR</span>
+                const isSel = conn.wsId === (selected?.wsId || null)
+                const isSR = isSignalRConnection(conn)
+                return (
+                  <button
+                    key={conn.wsId}
+                    type="button"
+                    aria-current={isSel ? 'true' : undefined}
+                    onClick={() => selectConnection(conn.wsId)}
+                    className={cn(
+                      'flex h-row-lg w-full items-center gap-2 border-b border-subtle px-3 py-2',
+                      'text-left transition-colors duration-100 focus-ring',
+                      isSel ? 'bg-card-hover' : 'bg-transparent hover:bg-card-hover',
                     )}
-                    <span style={{
-                      fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-secondary)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }} title={conn.url}>
-                      {shortUrl(conn.url)}
-                    </span>
-                  </div>
-                  <div style={{
-                    fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-ui)',
-                    display: 'flex', gap: 'var(--space-2)', marginTop: 1,
-                    lineHeight: 'var(--line-height-tight)',
-                  }}>
-                    <span style={{ color: statusColor(conn.status) }}>{statusLabel(conn.status)}</span>
-                    <span>{conn.frames?.length || 0} frames</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+                  >
+                    {/* Status colour comes from statusColor() — a runtime value. */}
+                    <span
+                      aria-hidden="true"
+                      className="h-[5px] w-[5px] shrink-0 rounded-full"
+                      style={{ background: statusColor(conn.status) }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1 leading-tight">
+                        {isSR && (
+                          <span
+                            title="SignalR connection"
+                            className="shrink-0 rounded-sm bg-accent-muted px-[3px] font-ui text-[8px] font-bold leading-[14px] text-accent"
+                          >
+                            SR
+                          </span>
+                        )}
+                        <span className="cell-truncate font-mono text-xs text-muted" title={conn.url}>
+                          {shortUrl(conn.url)}
+                        </span>
+                      </div>
+                      <div className="mt-px flex gap-2 font-ui text-[10px] text-faint leading-tight">
+                        <span style={{ color: statusColor(conn.status) }}>
+                          {statusLabel(conn.status)}
+                        </span>
+                        <span>{conn.frames?.length || 0} frames</span>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
               {connVirt.bottomSpacer > 0 && <div style={{ height: connVirt.bottomSpacer }} />}
             </>
           )}
@@ -393,29 +360,23 @@ export default forwardRef(function WebSocketTab({ connections, onClear, onReload
 
       {/* ─── Resizer ─── */}
       <div
-        className="panel-resizer"
+        className="panel-resizer shrink-0 cursor-col-resize"
         onMouseDown={startResize}
-        style={{ cursor: 'col-resize', flexShrink: 0 }}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize connection list"
       />
 
       {/* ─── Frame Stream (virtualized) ─── */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-panel)' }}>
-        {/* Toolbar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-          padding: '0 var(--space-3)', height: 38, flexShrink: 0,
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-panel-alt)',
-        }}>
-          <Search size={11} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-          <input
+      <div className="pane bg-panel">
+        <Toolbar>
+          <SearchInput
             ref={searchRef}
-            value={search} onChange={(e) => setSearch(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter frames…"
-            style={{
-              ...INPUT_BASE, flex: 1, height: 30, fontSize: 'var(--text-sm)',
-              border: 'none', background: 'transparent', padding: 0,
-            }}
+            aria-label="Filter WebSocket frames"
+            count={frames.length}
           />
           <LevelChip
             active={hidePings}
@@ -425,97 +386,86 @@ export default forwardRef(function WebSocketTab({ connections, onClear, onReload
             onClick={() => setHidePings((v) => !v)}
             title={hidePings ? 'Show ping/pong frames' : 'Hide ping/pong frames'}
           />
-          <span style={{
-            fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)',
-          }}>
-            {frames.length}
-          </span>
           <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
-        </div>
+        </Toolbar>
 
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          {/* Virtualized frames */}
-          <div ref={framesScrollRef} onScroll={frameVirt.onScroll}
-            style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            {!selected ? (
-              <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-                <Radio size={20} style={{ opacity: 0.3 }} />
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-                  Select a WebSocket connection
-                </div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-                  Frames sent and received will appear here
-                </div>
-              </div>
-            ) : (
-              <>
-                {frameVirt.topSpacer > 0 && <div style={{ height: frameVirt.topSpacer }} />}
-                {frames.slice(frameVirt.startIdx, frameVirt.endIdx).map((f, i) => {
-                  const idx = frameVirt.startIdx + i
-                  const srLabel = signalRLabel(f.data)
-                  const isSelected = selectedFrameIdx === idx
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedFrameIdx(idx)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                        padding: '0 var(--space-3)', height: FRAME_ROW_HEIGHT,
-                        fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-                        borderBottom: '1px solid var(--border-subtle)',
-                        background: isSelected
-                          ? 'var(--bg-card-hover)'
-                          : f.dir === 'send'
-                            ? 'var(--diff-add-bg)'
-                            : 'transparent',
-                        cursor: 'pointer',
-                        transition: 'background-color 80ms',
-                      }}
+        {/* Virtualized frames */}
+        <div
+          ref={framesScrollRef}
+          onScroll={frameVirt.onScroll}
+          className="min-h-0 flex-1 overflow-auto"
+        >
+          {!selected ? (
+            <EmptyState
+              icon={Radio}
+              title="Select a WebSocket connection"
+              description="Frames sent and received will appear here."
+            />
+          ) : (
+            <>
+              {frameVirt.topSpacer > 0 && <div style={{ height: frameVirt.topSpacer }} />}
+              {frames.slice(frameVirt.startIdx, frameVirt.endIdx).map((f, i) => {
+                const idx = frameVirt.startIdx + i
+                const srLabel = signalRLabel(f.data)
+                const isSelected = selectedFrameIdx === idx
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedFrameIdx(idx)}
+                    className={cn(
+                      'flex h-row cursor-pointer items-center gap-2 border-b border-subtle px-3',
+                      'font-mono text-xs transition-colors duration-100',
+                      isSelected
+                        ? 'bg-card-hover'
+                        // Outgoing frames get the diff-add tint so direction is
+                        // readable without reading the arrow.
+                        : f.dir === 'send'
+                          ? 'bg-diff-add hover:bg-card-hover'
+                          : 'bg-transparent hover:bg-row-hover',
+                    )}
+                  >
+                    <span className="shrink-0">
+                      {f.dir === 'send'
+                        ? <ArrowUp size={10} className="text-success-fg" aria-hidden="true" />
+                        : <ArrowDown size={10} className="text-info-fg" aria-hidden="true" />}
+                      <span className="sr-only">{f.dir === 'send' ? 'Sent' : 'Received'}</span>
+                    </span>
+                    <span className="w-20 shrink-0 text-[10px] text-faint tabular-nums">
+                      {formatTime(f.timestamp)}
+                    </span>
+                    {srLabel && (
+                      <span className="shrink-0 rounded-sm bg-accent-muted px-1 py-px font-ui text-[9px] font-medium text-accent">
+                        {srLabel}
+                      </span>
+                    )}
+                    <span
+                      className="cell-truncate flex-1 select-text text-muted"
+                      title={String(f.data)}
                     >
-                      <span style={{ flexShrink: 0 }}>
-                        {f.dir === 'send'
-                          ? <ArrowUp size={10} color="var(--status-success-text)" />
-                          : <ArrowDown size={10} color="var(--status-info-text)" />}
-                      </span>
-                      <span style={{ width: 80, flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10 }}>
-                        {formatTime(f.timestamp)}
-                      </span>
-                      {srLabel && (
-                        <span style={{
-                          flexShrink: 0, fontSize: 9, padding: '1px 4px', borderRadius: 3,
-                          background: 'var(--accent-muted)', color: 'var(--accent-primary)',
-                          fontFamily: 'var(--font-ui)', fontWeight: 'var(--font-weight-medium)',
-                        }}>
-                          {srLabel}
-                        </span>
-                      )}
-                      <span style={{
-                        flex: 1, minWidth: 0, color: 'var(--text-secondary)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        userSelect: 'text',
-                      }} title={String(f.data)}>
-                        {displayDataOneline(f.data)}
-                      </span>
-                      <span style={{ flexShrink: 0, color: 'var(--text-tertiary)', fontSize: 10 }}>
-                        {formatSize(f.size)}
-                      </span>
-                    </div>
-                  )
-                })}
-                {frameVirt.bottomSpacer > 0 && <div style={{ height: frameVirt.bottomSpacer }} />}
-              </>
-            )}
-          </div>
+                      {displayDataOneline(f.data)}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-faint tabular-nums">
+                      {formatSize(f.size)}
+                    </span>
+                  </div>
+                )
+              })}
+              {frameVirt.bottomSpacer > 0 && <div style={{ height: frameVirt.bottomSpacer }} />}
+            </>
+          )}
         </div>
 
         {/* ─── Detail resizer ─── */}
         <div
-          className="panel-resizer"
+          className="panel-resizer h-1.5 shrink-0 cursor-row-resize"
           onMouseDown={startDetailResize}
-          style={{ cursor: 'row-resize', flexShrink: 0, height: 6 }}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize frame detail"
         />
 
-        {/* ─── Frame detail ─── */}
-        <div style={{ height: detailHeight, flexShrink: 0, minHeight: 0, display: 'flex' }}>
+        {/* ─── Frame detail ─── Height is drag-resizable. */}
+        <div className="flex min-h-0 shrink-0" style={{ height: detailHeight }}>
           <FrameDetail
             frame={selectedFrameIdx != null ? frames[selectedFrameIdx] : null}
             onClear={() => setSelectedFrameIdx(null)}

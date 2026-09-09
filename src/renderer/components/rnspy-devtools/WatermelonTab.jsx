@@ -1,11 +1,13 @@
 // src/renderer/components/rnspy-devtools/WatermelonTab.jsx
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Database, RefreshCw, Search, Table2, X } from 'lucide-react'
+import { Database, RefreshCw, Search, Table2 } from 'lucide-react'
 
 import {
-  BTN_GHOST, BTN_SECONDARY, EMPTY_STATE, INPUT_BASE, SECTION_LABEL,
-} from '../../styles/shared'
+  Button, EmptyState, ErrorState, IconButton, Input, Modal, ModalBody, ModalHeader,
+  SectionLabel, Toolbar, ToolbarSpacer,
+} from '../ui'
+import cn from '../ui/cn'
 import LevelChip from './LevelChip'
 
 function formatTime(ts) {
@@ -109,47 +111,41 @@ export default function WatermelonTab({
 
   if (!online && tables.length === 0) {
     return (
-      <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-        <Database size={20} style={{ opacity: 0.3 }} />
-        <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
-          Device offline
-        </div>
-        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-          WatermelonDB can only be read while the app is connected.
-        </div>
+      <div className="pane bg-panel">
+        <EmptyState
+          icon={Database}
+          title="Device offline"
+          description="WatermelonDB can only be read while the app is connected."
+        />
       </div>
     )
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, background: 'var(--bg-panel)' }}>
-      {/* ─── Toolbar ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: '0 var(--space-3)', height: 38, flexShrink: 0,
-        borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-panel-alt)',
-      }}>
-        <span style={{ ...SECTION_LABEL, fontSize: 10 }}>WatermelonDB</span>
+    <div className="pane bg-panel">
+      <Toolbar>
+        <SectionLabel>WatermelonDB</SectionLabel>
         {current && (
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+          <span className="font-mono text-xs text-faint">
             {current.table} · {total} row{total === 1 ? '' : 's'}
             {total > 0 ? ` (loaded ${loadedRows.length})` : ''}
           </span>
         )}
 
-        <div style={{ flex: 1 }} />
+        <ToolbarSpacer />
 
-        {/* Search */}
-        <div style={{ position: 'relative', width: 220 }}>
-          <Search size={12} style={{
-            position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--text-tertiary)', pointerEvents: 'none',
-          }} />
-          <input
+        <div className="relative w-[220px] shrink-0">
+          <Search
+            size={12}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-faint"
+          />
+          <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter rows"
-            style={{ ...INPUT_BASE, width: '100%', paddingLeft: 26, fontSize: 'var(--text-xs)' }}
+            aria-label="Filter rows"
+            className="w-full pl-[26px] text-xs"
           />
         </div>
 
@@ -161,26 +157,17 @@ export default function WatermelonTab({
           onClick={onToggleAutoRefresh}
           title={autoRefresh ? 'Auto-refresh on (every 3s)' : 'Auto-refresh off'}
         />
-        <button
-          onClick={onRefresh}
-          disabled={!online}
-          title="Refresh now"
-          style={{ ...BTN_GHOST, opacity: online ? 1 : 0.4, cursor: online ? 'pointer' : 'default' }}
-        >
-          <RefreshCw size={12} />
-        </button>
-      </div>
+        <IconButton label="Refresh now" onClick={onRefresh} disabled={!online}>
+          <RefreshCw size={12} aria-hidden="true" />
+        </IconButton>
+      </Toolbar>
 
       {/* ─── Diagnostics banner ─── */}
       {diag && (diag.resolved === false || diag.error || available === false) && tables.length === 0 && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: 2,
-          padding: '6px var(--space-3)', flexShrink: 0,
-          borderBottom: '1px solid var(--status-warning-border)',
-          background: 'var(--status-warning-bg)',
-          fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-          color: 'var(--status-warning-text)',
-        }}>
+        <div
+          role="status"
+          className="flex shrink-0 flex-col gap-0.5 border-b border-warn-edge bg-warn px-3 py-1.5 font-mono text-xs text-warn-fg"
+        >
           {diag.resolved === false && !diag.error && (
             <span>WatermelonDB not found — <code>@nozbe/watermelondb</code> is not installed in the app.</span>
           )}
@@ -195,52 +182,41 @@ export default function WatermelonTab({
             </span>
           )}
           {(diag.notes || []).map((n, i) => (
-            <span key={i} style={{ opacity: 0.9 }}>• {n}</span>
+            <span key={i} className="opacity-90">• {n}</span>
           ))}
         </div>
       )}
 
       {/* ─── Body: table list + records grid ─── */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <div className="flex min-h-0 flex-1">
         {/* Table list */}
-        <div style={{
-          flex: '0 0 200px', minWidth: 0, display: 'flex', flexDirection: 'column',
-          borderRight: '1px solid var(--border-subtle)', background: 'var(--bg-panel-alt)',
-        }}>
-          <div style={{
-            padding: 'var(--space-2) var(--space-3)', borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-sidebar)', ...SECTION_LABEL, fontSize: 10,
-          }}>
-            TABLES ({tables.length})
+        <div className="flex w-[200px] min-w-0 shrink-0 flex-col border-r border-subtle bg-panel-alt">
+          <div className="border-b border-subtle bg-sidebar px-3 py-2">
+            <SectionLabel>Tables ({tables.length})</SectionLabel>
           </div>
-          <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <div className="min-h-0 flex-1 overflow-auto">
             {tables.length === 0 ? (
-              <div style={{ padding: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-                No tables
-              </div>
+              <div className="p-3 text-xs text-faint">No tables</div>
             ) : (
               tables.slice().sort((a, b) => a.table.localeCompare(b.table)).map((t) => {
                 const active = t.table === activeTable
                 return (
                   <button
                     key={t.table}
+                    type="button"
+                    aria-current={active ? 'true' : undefined}
                     onClick={() => { setActiveTable(t.table); setDetailRow(null) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-                      padding: 'var(--space-2) var(--space-3)', border: 'none',
-                      borderBottom: '1px solid var(--border-subtle)',
-                      borderLeft: active ? '2px solid var(--accent-primary)' : '2px solid transparent',
-                      background: active ? 'var(--status-success-bg)' : 'transparent',
-                      color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontSize: 'var(--text-xs)', fontFamily: 'var(--font-mono)',
-                      cursor: 'pointer', textAlign: 'left',
-                    }}
+                    className={cn(
+                      'flex w-full items-center gap-1.5 border-b border-subtle border-l-2 px-3 py-2',
+                      'text-left font-mono text-xs transition-colors duration-150 focus-ring',
+                      active
+                        ? 'border-l-accent bg-success text-fg'
+                        : 'border-l-transparent bg-transparent text-muted hover:bg-row-hover hover:text-fg',
+                    )}
                   >
-                    <Table2 size={12} style={{ flexShrink: 0, opacity: 0.7 }} />
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {t.table}
-                    </span>
-                    <span style={{ fontSize: 9, color: 'var(--text-tertiary)' }}>{t.rowCount}</span>
+                    <Table2 size={12} className="shrink-0 opacity-70" aria-hidden="true" />
+                    <span className="cell-truncate flex-1">{t.table}</span>
+                    <span className="shrink-0 text-[9px] text-faint tabular-nums">{t.rowCount}</span>
                   </button>
                 )
               })
@@ -249,36 +225,31 @@ export default function WatermelonTab({
         </div>
 
         {/* Records grid */}
-        <div ref={scrollRef} onScroll={onScroll} style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
+        <div ref={scrollRef} onScroll={onScroll} className="min-w-0 flex-1 overflow-auto">
           {!current ? (
-            <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-              <Database size={20} style={{ opacity: 0.3 }} />
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                {tables.length ? 'Select a table' : 'No WatermelonDB tables'}
-              </div>
-            </div>
+            <EmptyState
+              icon={Database}
+              title={tables.length ? 'Select a table' : 'No WatermelonDB tables'}
+            />
           ) : current.error ? (
-            <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--status-danger-text)' }}>
-                Error reading {current.table}: {current.error}
-              </div>
-            </div>
+            <ErrorState
+              title={`Error reading ${current.table}`}
+              description={current.error}
+              onRetry={onRefresh}
+            />
           ) : rows.length === 0 ? (
-            <div style={{ ...EMPTY_STATE, background: 'var(--bg-panel)' }}>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                {search ? 'No rows match the filter' : 'No records in this table'}
-              </div>
-            </div>
+            <EmptyState
+              icon={Database}
+              title={search ? 'No rows match the filter' : 'No records in this table'}
+              description={search ? 'Try a different filter.' : undefined}
+            />
           ) : (
-            <table style={{
-              width: 'auto', minWidth: '100%', borderCollapse: 'collapse',
-              fontSize: 'var(--text-xs)', tableLayout: 'auto',
-            }}>
+            <table className="w-auto min-w-full border-collapse text-xs [table-layout:auto]">
               <thead>
-                <tr style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-sidebar)' }}>
-                  <th style={thStyle}>id</th>
+                <tr className="sticky top-0 z-[1] bg-sidebar">
+                  <th className={TH}>id</th>
                   {columns.map((c) => (
-                    <th key={c} style={thStyle}>{c}</th>
+                    <th key={c} className={TH}>{c}</th>
                   ))}
                 </tr>
               </thead>
@@ -287,11 +258,11 @@ export default function WatermelonTab({
                   <tr
                     key={r.id}
                     onClick={() => setDetailRow(r)}
-                    style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+                    className="cursor-pointer border-b border-subtle transition-colors duration-150 hover:bg-row-hover"
                   >
-                    <td style={{ ...tdStyle, color: 'var(--accent-primary)' }}>{r.id}</td>
+                    <td className={cn(TD, 'text-accent')}>{r.id}</td>
                     {columns.map((c) => (
-                      <td key={c} style={tdStyle} title={cellText(r.fields?.[c])}>
+                      <td key={c} className={TD} title={cellText(r.fields?.[c])}>
                         {cellText(r.fields?.[c])}
                       </td>
                     ))}
@@ -302,22 +273,14 @@ export default function WatermelonTab({
           )}
           {/* Infinite-scroll footer: shows load progress for the active table. */}
           {current && !current.error && rows.length > 0 && !search && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 'var(--space-2)', fontSize: 'var(--text-xs)',
-              color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)',
-            }}>
+            <div className="flex items-center justify-center p-2 font-mono text-xs text-faint">
               {hasMore ? (
-                <button
-                  onClick={loadMore}
-                  style={{ ...BTN_GHOST }}
-                  title="Load more rows"
-                >
-                  <RefreshCw size={11} />
+                <Button variant="ghost" size="md" onClick={loadMore} title="Load more rows">
+                  <RefreshCw size={11} aria-hidden="true" />
                   Load more ({loadedRows.length} / {total})
-                </button>
+                </Button>
               ) : (
-                <span style={{ opacity: 0.6 }}>All {total} row{total === 1 ? '' : 's'} loaded</span>
+                <span className="opacity-60">All {total} row{total === 1 ? '' : 's'} loaded</span>
               )}
             </div>
           )}
@@ -325,71 +288,37 @@ export default function WatermelonTab({
       </div>
 
       {/* ─── Meta line ─── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        padding: '4px var(--space-3)', flexShrink: 0,
-        borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-sidebar)',
-        ...SECTION_LABEL, fontSize: 10,
-      }}>
-        <span>{rows.length} row{rows.length === 1 ? '' : 's'} shown</span>
-        {watermelon?.updatedAt && <span style={{ opacity: 0.6 }}>· updated {formatTime(watermelon.updatedAt)}</span>}
-        <span style={{ opacity: 0.6 }}>· read-only</span>
+      <div className="flex shrink-0 items-center gap-2 border-t border-subtle bg-sidebar px-3 py-1">
+        <SectionLabel>{rows.length} row{rows.length === 1 ? '' : 's'} shown</SectionLabel>
+        {watermelon?.updatedAt && (
+          <SectionLabel className="opacity-60">· updated {formatTime(watermelon.updatedAt)}</SectionLabel>
+        )}
+        <SectionLabel className="opacity-60">· read-only</SectionLabel>
       </div>
 
       {/* ─── Row detail ─── */}
       {detailRow && (
-        <div
-          onClick={() => setDetailRow(null)}
-          style={{
-            position: 'absolute', inset: 0, background: 'var(--overlay-soft)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: 'min(640px, 90%)', maxHeight: '80%', display: 'flex', flexDirection: 'column',
-              background: 'var(--bg-card)', border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)',
-            }}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-              padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid var(--border-subtle)',
-            }}>
-              <Database size={14} color="var(--accent-primary)" />
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                {current?.table} · {detailRow.id}
-              </span>
-              <div style={{ flex: 1 }} />
-              <button onClick={() => setDetailRow(null)} style={{ ...BTN_GHOST, padding: 4 }} title="Close">
-                <X size={14} />
-              </button>
-            </div>
-            <div style={{ padding: 'var(--space-4)', overflow: 'auto' }}>
-              <pre style={{
-                margin: 0, fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)',
-                color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-              }}>
-                {JSON.stringify({ id: detailRow.id, ...detailRow.fields }, null, 2)}
-              </pre>
-            </div>
-          </div>
-        </div>
+        <Modal size="lg" onClose={() => setDetailRow(null)} labelledBy="wm-row-title">
+          <ModalHeader
+            id="wm-row-title"
+            title={`${current?.table} · ${detailRow.id}`}
+            onClose={() => setDetailRow(null)}
+          />
+          <ModalBody>
+            <pre className="m-0 select-text whitespace-pre-wrap break-words font-mono text-xs text-muted">
+              {JSON.stringify({ id: detailRow.id, ...detailRow.fields }, null, 2)}
+            </pre>
+          </ModalBody>
+        </Modal>
       )}
     </div>
   )
 }
 
-const thStyle = {
-  textAlign: 'left', padding: '6px var(--space-3)', whiteSpace: 'nowrap',
-  borderBottom: '1px solid var(--border-default)', fontFamily: 'var(--font-mono)',
-  fontSize: 10, fontWeight: 'var(--font-weight-semibold)', color: 'var(--text-tertiary)',
-  textTransform: 'uppercase', letterSpacing: '0.04em', background: 'var(--bg-sidebar)',
-}
+// Shared cell classes. Kept as constants because <th>/<td> repeat per column.
+const TH =
+  'border-b border-default bg-sidebar px-3 py-1.5 text-left font-mono text-[10px] ' +
+  'font-semibold uppercase tracking-[0.04em] text-faint whitespace-nowrap'
 
-const tdStyle = {
-  padding: '5px var(--space-3)', fontFamily: 'var(--font-mono)',
-  color: 'var(--text-secondary)', maxWidth: 280, overflow: 'hidden',
-  textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-}
+const TD =
+  'max-w-[280px] overflow-hidden text-ellipsis whitespace-nowrap px-3 py-[5px] font-mono text-muted'

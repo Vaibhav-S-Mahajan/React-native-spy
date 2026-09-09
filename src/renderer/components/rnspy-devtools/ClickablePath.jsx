@@ -2,7 +2,7 @@
 // Parses stack-trace-like strings and renders file references as clickable links
 // that open in VS Code via the main-process IPC handler.
 
-import { useState, useMemo, useCallback, Fragment } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import toast from 'react-hot-toast'
 
 // ── Stack location parser ────────────────────────────
