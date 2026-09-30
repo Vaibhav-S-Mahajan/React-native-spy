@@ -321,6 +321,7 @@ export default function RnspyDevtoolsPage() {
             onClear={() => clearActiveTab(activeKey)}
             onReload={() => handleReload(activeKey)}
             canReload={activeDevice?.online && !reloadingKeys.has(activeKey)}
+            deviceName={activeDevice.name}
           />
         ) : tab === 'websocket' ? (
           <WebSocketTab

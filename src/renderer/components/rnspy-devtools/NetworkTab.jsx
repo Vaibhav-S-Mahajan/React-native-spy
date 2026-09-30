@@ -3,7 +3,8 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import {
   ArrowDownUp, BarChart3, Braces, ChevronDown, ChevronRight, Clipboard, Code,
-  Copy, EyeOff, FileCode, FileJson, Globe, Link, MoreVertical, Search, Terminal, X,
+  Copy, Download, EyeOff, FileCode, FileJson, Globe, Link,
+  MoreVertical, Search, Send, Terminal, X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -13,10 +14,14 @@ import {
   toCurl, toCurlPowerShell, toFetch, toNodeFetch, toAxios, toHttpie,
   toRawHttp, toHarEntry, toQueryParams, prettyBody, headersToText, copyText,
 } from '../../utils/curl'
+import {
+  toPostmanCollection, toApifoxCollection, downloadJson, exportFilename,
+} from '../../utils/collectionExport'
 import { requestName, isRequestHidden } from '../../utils/requestFilters'
 import { EMPTY_STATE, INPUT_BASE, SECTION_LABEL, BTN_GHOST } from '../../styles/shared'
 import LevelChip from './LevelChip'
 import ToolbarActions from './ToolbarActions'
+import { IconButton } from '../ui'
 
 const ROW_HEIGHT = 34
 
@@ -150,9 +155,13 @@ function shortUrl(url) {
   }
 }
 
-export default forwardRef(function NetworkTab({ requests, hiddenRules = [], onHideName, onClear, onReload, canReload }, ref) {
+export default forwardRef(function NetworkTab({
+  requests, hiddenRules = [], onHideName, onClear, onReload, canReload,
+  deviceName,
+}, ref) {
   const [selectedId, setSelectedId] = useState(null)
   const [menu, setMenu] = useState(null)
+  const [exportMenu, setExportMenu] = useState(null)
   const [search, setSearch] = useState('')
   const [detailTab, setDetailTab] = useState('headers')
   const [listPct, setListPct] = useState(55)
@@ -294,6 +303,29 @@ export default forwardRef(function NetworkTab({ requests, hiddenRules = [], onHi
     setMenu(null)
   }, [])
 
+  // Exports whatever the list currently shows — hidden rules and the active
+  // filter both apply — so "what you see is what you get".
+  const exportAs = useCallback((kind) => {
+    setExportMenu(null)
+    if (!sorted.length) return
+    const opts = { deviceName: deviceName || null }
+    const json = kind === 'postman'
+      ? toPostmanCollection(sorted, opts)
+      : toApifoxCollection(sorted, opts)
+    const file = kind === 'postman'
+      ? exportFilename(deviceName, 'postman_collection.json')
+      : exportFilename(deviceName, 'apifox.json')
+    const ok = downloadJson(file, json)
+    if (ok) toast.success(`Exported ${sorted.length} request${sorted.length === 1 ? '' : 's'} to ${file}`)
+    else toast.error('Export failed')
+  }, [sorted, deviceName])
+
+  const openExportMenu = useCallback((e) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    setExportMenu({ x: rect.left, y: rect.bottom + 6 })
+  }, [])
+
   const DETAIL_TABS = [
     { key: 'headers', label: 'Headers' },
     { key: 'request', label: 'Payload' },
@@ -352,6 +384,14 @@ export default forwardRef(function NetworkTab({ requests, hiddenRules = [], onHi
             })}
             title={showWaterfall ? 'Hide waterfall' : 'Show waterfall'}
           />
+          {/* Export the visible requests as an importable API collection */}
+          <IconButton
+            label="Export collection"
+            onClick={openExportMenu}
+            disabled={sorted.length === 0}
+          >
+            <Download size={14} aria-hidden="true" />
+          </IconButton>
           <ToolbarActions onClear={onClear} onReload={onReload} canReload={canReload} />
         </div>
 
@@ -567,6 +607,25 @@ export default forwardRef(function NetworkTab({ requests, hiddenRules = [], onHi
           </div>
         </div>
       </>)}
+
+      {/* ─── Export Menu ─── */}
+      {exportMenu && (
+        <CursorMenu anchor={exportMenu} onClose={() => setExportMenu(null)} width={300}>
+          <MenuLabel>Export — {sorted.length} request{sorted.length === 1 ? '' : 's'}</MenuLabel>
+          <MenuItem
+            icon={<Send size={11} />}
+            label="Postman Collection (v2.1)"
+            hint=".json"
+            onClick={() => exportAs('postman')}
+          />
+          <MenuItem
+            icon={<FileJson size={11} />}
+            label="Apidog / Apifox Collection"
+            hint=".json"
+            onClick={() => exportAs('apifox')}
+          />
+        </CursorMenu>
+      )}
 
       {/* ─── Context Menu ─── */}
       {menu && (

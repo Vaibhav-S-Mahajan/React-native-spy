@@ -1,8 +1,11 @@
 name: CI
 
-# Fast feedback on every push and PR: does the app still build, and does it
-# still package? Packaging uses `--dir` (no installers, no publish) so it stays
-# quick while still catching electron-builder config breakage.
+# Every push to main builds installers for macOS, Windows and Linux and uploads
+# them as workflow artifacts (Actions → run → Artifacts). Nothing is published
+# to a GitHub release here; that is release.yml's job.
+#
+# Pull requests only do the fast check: build + unpacked package, no
+# installers, no artifacts.
 
 on:
   push:
@@ -20,13 +23,22 @@ concurrency:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: Build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            name: macOS
+            flag: --mac
+          - os: windows-latest
+            name: Windows
+            flag: --win
+          - os: ubuntu-latest
+            name: Linux
+            flag: --linux
 
     steps:
       - name: Checkout
@@ -44,7 +56,29 @@ jobs:
       - name: Build renderer, preload and main
         run: npm run build
 
+      # Pull requests: quick packaging check only.
       - name: Package (unpacked, no installers)
-        run: npm run build:unpack
+        if: github.event_name == 'pull_request'
+        run: npx electron-builder ${{ matrix.flag }} --dir --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      # Pushes to main (and manual runs): full installers, never published.
+      - name: Package installers
+        if: github.event_name != 'pull_request'
+        run: npx electron-builder ${{ matrix.flag }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload installers
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-native-spy-${{ matrix.name }}-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            dist/*.AppImage

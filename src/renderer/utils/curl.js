@@ -9,13 +9,13 @@ function psQuote(str) {
   return `"${String(str).replace(/"/g, '`"').replace(/\$/g, '`$')}"`
 }
 
-function headerEntries(headers) {
+export function headerEntries(headers) {
   if (!headers) return []
   if (typeof headers === 'object' && !Array.isArray(headers)) return Object.entries(headers)
   return []
 }
 
-function bodyToString(body) {
+export function bodyToString(body) {
   if (!body) return ''
   if (typeof body === 'string') return body
   try { return JSON.stringify(body) } catch { return String(body) }
