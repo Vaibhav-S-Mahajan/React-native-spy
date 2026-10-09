@@ -43,6 +43,7 @@ jobs:
             gh release create "$TAG" \
               --repo "$GITHUB_REPOSITORY" \
               --draft \
+              --verify-tag \
               --generate-notes \
               --title "$TAG"
             echo "Draft release $TAG created."

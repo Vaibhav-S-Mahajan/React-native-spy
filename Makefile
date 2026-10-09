@@ -22,7 +22,7 @@
 #   - GitHub Actions workflows in .github/workflows/
 # ──────────────────────────────────────────────────────────────────────
 
-.PHONY: patch minor major _pre_release _push
+.PHONY: patch minor major dev build help _pre_release _push
 
 # Default target
 .DEFAULT_GOAL := help
@@ -43,6 +43,11 @@ _pre_release:
 		exit 1; \
 	fi
 	@git remote get-url origin >/dev/null 2>&1 || (echo "Error: git remote 'origin' is not configured." >&2; exit 1)
+	@git fetch origin $(RELEASE_BRANCH) --quiet
+	@if [ "$$(git rev-list --count HEAD..origin/$(RELEASE_BRANCH))" != "0" ]; then \
+		echo "Error: local $(RELEASE_BRANCH) is behind origin/$(RELEASE_BRANCH). Run 'git pull --rebase' first." >&2; \
+		exit 1; \
+	fi
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		echo "  Staging all changes..."; \
 		git add -A; \
@@ -53,24 +58,23 @@ _pre_release:
 	fi
 
 _push:
-	@echo "  Pushing to GitHub..."
-	@git push
-	@git push --tags
-	@TAG=$$(git describe --tags --abbrev=0) && \
-		echo "" && \
-		echo "══════════════════════════════════════════════════════════" && \
-		echo "  Release $$TAG pushed!" && \
-		echo "" && \
-		echo "  Next steps:" && \
-		echo "    1. Wait for the draft release to appear on GitHub" && \
-		echo "    2. Review the release notes" && \
-		echo "    3. Click 'Publish release' to trigger the build" && \
-		echo "    4. Installers will be built for macOS, Windows, Linux" && \
-		echo "    5. electron-updater will auto-notify existing users" && \
-		echo "" && \
-		echo "  https://github.com/dev-vaibhav0220/React-native-spy/releases" && \
-		echo "══════════════════════════════════════════════════════════" && \
-		echo ""
+	@TAG="v$$(node -p "require('./package.json').version")"; \
+	REPO=$$(git remote get-url origin | sed -E 's#^(git@github.com:|https://github.com/)##; s#\.git$$##'); \
+	echo "  Pushing $(RELEASE_BRANCH) and $$TAG to GitHub..."; \
+	git push --atomic origin HEAD "refs/tags/$$TAG" || exit 1; \
+	echo ""; \
+	echo "══════════════════════════════════════════════════════════"; \
+	echo "  Release $$TAG pushed!"; \
+	echo ""; \
+	echo "  Next steps:"; \
+	echo "    1. A draft release is created automatically on GitHub"; \
+	echo "    2. Review the release notes"; \
+	echo "    3. Click 'Publish release' to build unsigned macOS, Windows"; \
+	echo "       and Linux installers and attach them to the release"; \
+	echo ""; \
+	echo "  https://github.com/$$REPO/releases"; \
+	echo "══════════════════════════════════════════════════════════"; \
+	echo ""
 
 # ── Release targets ─────────────────────────────────────────────────
 
